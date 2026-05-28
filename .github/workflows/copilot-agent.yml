@@ -1,0 +1,106 @@
+name: Copilot Agent 自动实现
+
+# 当 Issue 被打上 'copilot' 标签时，触发 GitHub Copilot Coding Agent 自动实现
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  trigger-copilot-agent:
+    name: 触发 Copilot Agent
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'copilot'
+    steps:
+      - name: 检查 Issue 是否满足 AI 处理条件
+        uses: actions/github-script@v7
+        id: check-issue
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            // 检查 Issue 描述长度（太短说明信息不足）
+            if (!issue.body || issue.body.trim().length < 100) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `⚠️ **Issue 描述不够详细**\n\nCopilot Agent 需要足够的上下文才能准确实现功能。请补充以下信息：\n\n- 详细的需求描述（用户故事或功能说明）\n- 具体的验收标准（可测试的条件列表）\n- 相关技术规格（涉及的模块、API、数据结构等）\n\n补充完成后重新添加 \`copilot\` 标签以触发 AI 实现。`
+              });
+              core.setOutput('should_proceed', 'false');
+              return;
+            }
+
+            core.setOutput('should_proceed', 'true');
+            core.setOutput('issue_number', issue.number);
+            core.setOutput('issue_title', issue.title);
+
+      - name: 更新 Issue 状态标签
+        if: steps.check-issue.outputs.should_proceed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = parseInt('${{ steps.check-issue.outputs.issue_number }}');
+
+            // 移除 ai-ready 标签，添加 in-progress 标签
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                name: 'ai-ready'
+              });
+            } catch (e) {
+              // 标签可能不存在，忽略错误
+            }
+
+            // 确保 in-progress 标签存在
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['in-progress']
+              });
+            } catch (e) {
+              console.log('添加标签失败:', e.message);
+            }
+
+      - name: 通知 Copilot Agent 开始处理
+        if: steps.check-issue.outputs.should_proceed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = parseInt('${{ steps.check-issue.outputs.issue_number }}');
+            const issueTitle = '${{ steps.check-issue.outputs.issue_title }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `🤖 **Copilot Agent 已接收任务**\n\n正在处理 Issue：**${issueTitle}**\n\nCopilot Agent 将会：\n1. 分析现有代码库和架构\n2. 按照 \`WORKFLOW.md\` 中的规范实现功能\n3. 编写对应的测试用例\n4. 创建 Pull Request 并等待人工审查\n\n📋 进度将在此 Issue 中更新。`
+            });
+
+      # 注意：以下步骤触发 GitHub Copilot Coding Agent
+      # 需要在仓库中启用 Copilot Coding Agent 功能
+      # 参考：https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent
+      - name: 触发 Copilot Coding Agent
+        if: steps.check-issue.outputs.should_proceed == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = parseInt('${{ steps.check-issue.outputs.issue_number }}');
+
+            // 通过在 Issue 上 @copilot 触发 Copilot Coding Agent
+            // 这是当前触发 Copilot Agent 的推荐方式
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `@copilot 请按照 \`WORKFLOW.md\` 中定义的规范实现此 Issue 中描述的功能。\n\n实现完成后请创建 Pull Request，并确保所有测试通过。`
+            });

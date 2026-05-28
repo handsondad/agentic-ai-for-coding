@@ -1,0 +1,89 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虚拟环境
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 测试 & 覆盖率
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+htmlcov/
+
+# 类型检查
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# 代码质量工具
+.ruff_cache/
+
+# 日志
+*.log
+logs/
+
+# 运行时数据
+*.pid
+*.seed
+*.pid.lock
+
+# Docker
+.dockerignore
+
+# 本地开发配置（不提交到版本库）
+.env
+.env.local
+.env.*.local
+
+# Symphony 工作空间（本地运行时生成）
+symphony_workspaces/
+
+# 系统文件
+.DS_Store
+Thumbs.db

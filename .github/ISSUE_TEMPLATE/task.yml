@@ -1,0 +1,98 @@
+name: 🔧 开发任务
+description: 技术任务、重构、工程改进（非功能性需求）
+title: "chore: "
+labels: ["task"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔧 开发任务
+        
+        用于技术债务清理、重构、性能优化、工程改进等技术性任务。
+        如需 AI Agent 自动处理，请添加 `ai-ready` 标签。
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: 任务类型
+      options:
+        - 🔨 重构 - 改善代码结构，不改变外部行为
+        - ⚡ 性能优化 - 提升系统性能
+        - 🔒 安全加固 - 修复安全漏洞或加强安全措施
+        - 📦 依赖更新 - 升级或替换依赖
+        - 🧪 测试完善 - 添加或改进测试
+        - 🏗️ 基础设施 - CI/CD、部署、监控相关
+        - 📚 文档更新 - 技术文档、API 文档
+        - 🧹 技术债务 - 清理遗留问题
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景与动机
+      description: 为什么需要做这个任务？不做的话会有什么问题？
+      placeholder: |
+        当前问题：...
+        影响范围：...
+        为什么现在做：...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 任务范围
+      description: 详细描述需要做什么，以及不做什么（边界）
+      placeholder: |
+        **需要做**：
+        - 将 src/agent/core.py 中的 XxxClass 拆分为独立模块
+        - 更新对应的测试
+        
+        **不在本任务范围内**：
+        - 不修改对外 API 接口
+        - 不更改业务逻辑
+    validations:
+      required: true
+
+  - type: textarea
+    id: done-criteria
+    attributes:
+      label: 完成标准
+      description: 怎样算是完成了这个任务？
+      placeholder: |
+        - [ ] 所有现有测试通过，无回归
+        - [ ] 代码覆盖率不低于当前水平
+        - [ ] CI 全部通过
+        - [ ] 具体的技术指标（如性能提升 X%）
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: 技术说明（可选）
+      description: 相关技术决策、参考资料、注意事项
+      placeholder: |
+        参考文档：...
+        相关 PR/Issue：...
+        注意事项：...
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      options:
+        - 🟠 高（影响开发效率或系统稳定性）
+        - 🟡 中（计划内改进）
+        - 🟢 低（有空再做）
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: ai-flag
+    attributes:
+      label: AI 处理选项
+      options:
+        - label: 这个任务适合由 AI Agent 自动处理（添加后请同时加 ai-ready 标签）

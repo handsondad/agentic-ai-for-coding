@@ -1,0 +1,100 @@
+name: 🐛 Bug 报告
+description: 报告一个问题，AI Agent 将自动修复
+title: "fix: "
+labels: ["bug", "ai-ready"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug 报告
+        
+        请提供详细的 Bug 信息，包括复现步骤和期望行为。
+        AI Agent 将根据这些信息自动定位并修复问题。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: 清晰简洁地描述 Bug 是什么
+      placeholder: "当我执行 X 操作时，发生了 Y，但我期望的是 Z"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 如何复现这个问题
+      placeholder: |
+        1. 调用 API `POST /api/v1/chat` 并传入参数 `{...}`
+        2. 等待响应
+        3. 观察到错误响应 `{...}`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 描述你期望应该发生什么
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 描述实际发生了什么，包括错误信息和堆栈跟踪
+      placeholder: |
+        错误信息：
+        ```
+        Traceback (most recent call last):
+          ...
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息
+      description: 问题发生的环境
+      placeholder: |
+        - 操作系统：Ubuntu 22.04 / macOS 14
+        - Python 版本：3.11.x
+        - 应用版本/提交：v1.2.0 或 commit SHA
+        - 相关配置（脱敏）：
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志
+      description: 粘贴相关日志（注意脱敏处理）
+      render: text
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度
+      options:
+        - 🔴 Critical - 系统崩溃/数据丢失
+        - 🟠 High - 核心功能不可用
+        - 🟡 Medium - 功能异常但有临时方案
+        - 🟢 Low - 轻微问题
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 我已搜索现有 Issues，确认这不是重复 Bug
+          required: true
+        - label: 我已提供足够的信息来复现这个问题
+          required: true
+        - label: 日志和截图中不包含敏感信息（API Key、密码等）
+          required: true
