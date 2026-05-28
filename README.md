@@ -1,183 +1,363 @@
-# AI Agent 项目开发流程模板
+# 🌿 nature-dex
 
-> 基于 [openai/symphony](https://github.com/openai/symphony) 构建的 AI Agent 项目开发流程模板，深度集成 GitHub 生态工具，以 **AI for Coding** 为核心驱动力，适合 10 人以内的小团队打造生产级 AI Agent 产品。
+> **Know nature. See more. Grow curious.**
+
+一个面向儿童自然启蒙的 **AI Agent 知识陪伴系统**，帮助孩子认识身边的动物和植物，完成"提问 → 识别 → 学习 → 记录 → 复习"的完整闭环。
 
 ---
 
 ## 目录
 
-- [核心理念](#核心理念)
-- [整体架构](#整体架构)
-- [开发流程设计](#开发流程设计)
-- [GitHub 工具链](#github-工具链)
+- [项目定位](#项目定位)
+- [为什么是 AI Agent](#为什么是-ai-agent)
+- [核心能力模块](#核心能力模块)
+- [系统架构](#系统架构)
+- [Agent 工作流](#agent-工作流)
+- [知识库设计](#知识库设计)
+- [数据模型](#数据模型)
+- [MVP 规划](#mvp-规划)
+- [技术栈](#技术栈)
+- [儿童场景约束](#儿童场景约束)
+- [开发路线](#开发路线)
 - [快速开始](#快速开始)
 - [目录结构](#目录结构)
-- [工作流详解](#工作流详解)
-- [Symphony 集成](#symphony-集成)
-- [分支与发布策略](#分支与发布策略)
-- [团队协作规范](#团队协作规范)
-- [常见问题](#常见问题)
 
 ---
 
-## 核心理念
+## 项目定位
 
-### 为什么是 AI for Coding 驱动？
+nature-dex 不是一个普通的知识库，而是一个 **AI Agent 知识陪伴系统**。
 
-传统开发流程中，工程师需要亲自监督每一行代码的编写。而 **AI for Coding 驱动**的开发模式让工程师从代码实施者转变为**工作管理者**——你负责定义清晰的需求和验收标准，AI Agent 负责自主实现，工程师专注于架构决策、代码审查和产品方向。
+核心目标是让 AI 充当五个角色，陪伴孩子完成完整的自然学习闭环：
 
-这种模式带来的核心优势：
-
-| 传统模式 | AI 驱动模式 |
-|---------|------------|
-| 工程师编写每行代码 | 工程师定义需求，AI 实现 |
-| 手动监督代码质量 | CI/CD + 自动化测试保障质量 |
-| 线性开发速度 | 并发执行多个任务 |
-| 经验依赖性强 | 知识沉淀在 Prompt 和规范中 |
-
-### 核心原则
-
-1. **需求即代码**：每个 GitHub Issue 都是一个完整的工作单元，包含足够的上下文让 AI 自主完成实现
-2. **规范驱动**：通过 `WORKFLOW.md` 和 `.github/copilot-instructions.md` 定义 AI 的行为边界
-3. **测试优先**：所有 AI 生成的代码必须通过 CI 验证才能合并
-4. **可观测性**：每个 AI 执行会话都有完整的日志和工作证明
-5. **人工把关**：AI 实现，人工审查，确保产品质量
+| AI 角色 | 负责什么 |
+|--------|---------|
+| 🌱 **自然老师** | 给孩子讲解动物和植物 |
+| 🔍 **观察助手** | 引导孩子去看、去问、去记录 |
+| 🗂️ **分类助手** | 帮孩子把看到的东西归类 |
+| 📈 **成长陪伴者** | 根据年龄和兴趣持续推荐内容 |
+| 👨‍👩‍👧 **家长协同助手** | 给家长补充科学解释和安全提醒 |
 
 ---
 
-## 整体架构
+## 为什么是 AI Agent
+
+普通知识库只能"查"；AI Agent 可以"主动陪孩子学"。
+
+**普通问答**：孩子问"这是什么花？"，系统回答"这是蒲公英……" → 结束。
+
+**Agent 模式**：
+```
+孩子：这是什么花？
+
+Agent：你看到的是黄色花，还是白色绒球呢？
+       它长在草地边还是花坛里？
+       你想把它记录进今天的观察日记吗？
+       我可以告诉你怎么把它和菊花区分开。
+       你上周也看过类似植物，要不要比较一下？
+```
+
+这才是 Agent——从"答题器"变成"下一步行动建议器"。
+
+---
+
+## 核心能力模块
+
+### 1. 🔎 识别 Agent
+
+负责"看见的东西是什么"。
+
+- **输入**：图片 / 语音描述 / 文字描述 / 地点 & 季节信息
+- **输出**：候选物种 + 置信度 + 区分特征 + 后续确认问题
+
+```
+用户上传一张花的图片：
+  候选1：蒲公英
+  候选2：苦苣菜
+  Agent 追问：
+    - 花是单独一朵，还是很多小花聚在一起？
+    - 叶子是不是贴着地面长？
+    - 看到白色绒球了吗？
+```
+
+### 2. 🗣️ 儿童讲解 Agent
+
+负责把知识转成孩子能听懂的话。
+
+| 版本 | 示例 |
+|-----|-----|
+| 成人版 | 蒲公英是菊科多年生草本植物。 |
+| 儿童版 | 蒲公英像一朵小太阳，花谢以后会变成白白的绒球，风一吹就飞走啦。 |
+
+支持按年龄分层输出（4–6岁 / 7–9岁 / 10岁+），自动附带"观察点"。
+
+### 3. 👣 观察引导 Agent
+
+负责把"知识"变成"行动"。
+
+```
+孩子看到一只蜗牛时，Agent 会说：
+  - 你可以先看看它有没有伸出触角。
+  - 它爬过的地方会不会留下亮亮的痕迹？
+  - 不要用手去拉它的壳哦。
+  - 你想记录它是在墙上还是草地上吗？
+```
+
+### 4. 📚 知识检索 / 分类 Agent
+
+连接知识库，支持：
+- 物种查找和相似物种比较
+- 多层分类解释
+- 按地点 / 季节 / 颜色 / 习性过滤
+
+### 5. 📓 记录与成长 Agent
+
+负责长期记忆和陪伴。
+
+- 自动生成观察日记
+- 定期复习推送
+- 展示成长轨迹
+
+```
+你已经认识 5 种常见鸟啦。
+你总是把麻雀和燕子弄混，我们来玩一个区分小游戏。
+这个月你观察最多的是公园里的植物。
+```
+
+### 6. 👨‍👩‍👧 家长协同 Agent
+
+孩子和家长使用两套视图：
+
+| 孩子端 | 家长端 |
+|-------|-------|
+| 简短解释 + 互动提问 + 小任务 | 学术补充 + 安全建议 + 引导提示 + 推荐延伸活动 |
+
+---
+
+## 系统架构
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        产品开发循环                               │
-│                                                                   │
-│  需求定义  →  Issue创建  →  AI实现  →  代码审查  →  合并上线        │
-│   (PM/TL)    (规范模板)   (Copilot)   (工程师)    (自动发布)       │
+│                         前端层                                    │
+│   Web / 小程序 / PWA                                              │
+│   聊天 | 图片上传 | 物种卡 | 观察记录 | 成长档案                     │
 └─────────────────────────────────────────────────────────────────┘
-
+                              │
 ┌─────────────────────────────────────────────────────────────────┐
-│                      GitHub 生态工具栈                             │
+│                    Agent Orchestration 层                         │
 │                                                                   │
-│  GitHub Issues    →  任务追踪与需求管理                            │
-│  GitHub Projects  →  项目看板与进度管理                            │
-│  GitHub Copilot   →  AI 辅助编码（个人开发）                       │
-│  Copilot Agent    →  AI 自主实现（任务执行）                        │
-│  GitHub Actions   →  CI/CD 与工作流编排                            │
-│  GitHub Code Rev  →  代码审查与质量保障                             │
-│  Symphony         →  AI Agent 任务调度编排                          │
+│  Router Agent → Identify Agent → Explain Agent                   │
+│              → Observe Agent  → Record Agent                     │
+│              → Review Agent   → Compare Agent                    │
 └─────────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────────┐
+│                       Knowledge Layer                             │
+│   结构化物种库 | 多模态媒体库 | 分类标签系统                          │
+│   季节/地点索引 | 用户观察记录库                                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+┌───────────────────────────────────────┬─────────────────────────┐
+│             Model Layer               │       Tool Layer         │
+│  通用大模型（对话/解释/规划）             │  species_search()        │
+│  多模态模型（图片理解）                  │  identify_from_image()   │
+│  Embedding 模型（知识检索）             │  compare_species()       │
+│  分类/排序模型（候选物种召回）            │  create_observation()    │
+│                                       │  fetch_child_profile()   │
+│                                       │  recommend_next_task()   │
+│                                       │  safety_check()          │
+└───────────────────────────────────────┴─────────────────────────┘
 ```
 
 ---
 
-## 开发流程设计
+## Agent 工作流
 
-### 标准开发流程
-
-```
-1. 需求拆解
-   PM/TL → 创建 GitHub Issue（使用标准模板）
-   └─ 填写：用户故事、验收标准、技术要点、测试要求
-
-2. 任务分配
-   TL → 给 Issue 打上 `copilot` 标签
-   └─ GitHub Actions 自动触发 Copilot Coding Agent
-
-3. AI 自主实现
-   Copilot Agent → 读取 Issue + WORKFLOW.md + copilot-instructions.md
-   └─ 创建分支 → 实现功能 → 编写测试 → 提交 PR
-
-4. 自动化验证
-   GitHub Actions CI → 运行测试 + 代码分析 + 安全扫描
-   └─ 所有检查通过后，PR 标记为可审查
-
-5. 人工代码审查
-   工程师 → 审查 PR（关注：逻辑正确性、安全性、架构合理性）
-   └─ 提供反馈 → Copilot Agent 根据反馈修改
-
-6. 合并与发布
-   审查通过 → 合并到 main
-   └─ 自动触发发布流水线
-```
-
-### Symphony 编排模式（高级）
-
-对于需要并发处理多个任务的场景，使用 Symphony 进行 AI Agent 任务调度：
+### 场景 1：孩子拍照问"这是什么？"
 
 ```
-Symphony 服务
-├── 持续监听 GitHub Issues（标记为 ai-ready 状态）
-├── 为每个 Issue 创建隔离工作空间
-├── 启动 Codex/Copilot Agent 会话
-├── 收集工作证明（CI状态、PR链接、测试结果）
-└── 汇报进度给项目看板
+1. 用户上传图片 + 文本"这是什么？"
+2. Router Agent → 判断是"识别请求"
+3. 调用识别工具 → 候选物种列表
+4. 检索知识库 → 候选资料
+5. Agent 决策：直接回答 or 发起澄清问题
+6. 输出儿童化解释 + 区分点 + 观察任务 + 是否加入记录
+```
+
+输出示例：
+> 它很像蒲公英，因为它有黄色的小花，叶子贴近地面。
+> 你可以再看看：它之后会不会变成白色的小绒球？
+> 要不要把它记到今天的自然观察里？
+
+### 场景 2：孩子说"我今天在小区看到了三只鸟"
+
+```
+1. 判断为"记录意图"
+2. Agent 追问最少必要信息（物种/位置/是否拍照）
+3. 自动生成观察记录草稿
+4. 不确定物种 → 挂起为"待确认"
+5. 保存到孩子的观察档案
+```
+
+### 场景 3：系统主动推荐
+
+```
+最近是春天，你家附近公园可以找找蒲公英和柳树新芽。
+你还没记录过会飞的昆虫，今天可以试着找蝴蝶或蜻蜓。
 ```
 
 ---
 
-## GitHub 工具链
+## 知识库设计
 
-### 1. GitHub Issues — 任务中枢
+知识库的核心定位：**不是"给人看"的，而是"给 Agent 调用"的。**
 
-所有工作从 Issue 开始。本模板提供三种 Issue 模板：
+### 三层结构
 
-- **功能需求** (`feature.yml`)：新功能开发，包含用户故事和验收标准
-- **Bug 报告** (`bug.yml`)：问题修复，包含复现步骤和期望行为
-- **开发任务** (`task.yml`)：技术任务，包含技术规格和完成标准
+#### 1. 结构化层（精确筛选 & 工具调用）
 
-**关键实践**：
-- Issue 描述必须足够详细，让 AI 无需额外沟通即可理解需求
-- 使用标签体系管理任务状态：`ai-ready`、`in-progress`、`human-review`
-- 通过 GitHub Projects 管理任务优先级和进度
+物种核心字段：`id` · `name_zh` · `name_en` · `scientific_name` · `type` · `category` · `habitat` · `season` · `color` · `safety_level` · `observation_difficulty` · `age_level`
 
-### 2. GitHub Copilot Coding Agent — AI 实现引擎
+#### 2. 文本知识块层（RAG 检索）
 
-Copilot Coding Agent 是本流程的核心执行引擎：
+每个物种拆成多个 chunk，Agent 按意图取不同 chunk：
+- 基础介绍
+- 识别特征
+- 相似物种区别
+- 儿童化描述
+- 家长补充
+- 安全提醒
+- 观察任务建议
 
-```yaml
-# 触发方式
-- 给 Issue 添加 'copilot' 标签 → 自动触发
-- 在 Issue 评论 '@copilot implement this' → 手动触发
-- GitHub Actions 计划任务 → 批量处理
+#### 3. 多模态标签层（图片检索 & 识别辅助）
+
+标签维度：主色 · 花形 · 叶形 · 羽毛颜色 · 翅膀形态 · 常见背景环境 · 声音标签
+
+---
+
+## 数据模型
+
+### 核心五大实体
+
+```sql
+-- 1. 物种
+species (
+  id, name_zh, name_en, scientific_name, type, category, subcategory,
+  summary_child, summary_parent, safety_notice,
+  common_locations, common_seasons
+)
+
+-- 2. 观察记录
+observation_records (
+  id, user_id, species_id, identified_status,
+  observed_at, location, note_text, image_url, voice_url, weather
+)
+
+-- 3. 用户档案
+user_profiles (
+  id, child_name, birth_year, interests, level,
+  home_city, parent_id
+)
+
+-- 4. 学习任务
+tasks (
+  id, title, type, age_range, season, location_type,
+  instructions, safety_notice
+)
+
+-- 5. 对话状态
+conversations (
+  id, user_id, session_id,
+  current_topic_species_id, current_mode, short_memory_json
+)
 ```
 
-**Agent 工作模式**：
-1. 读取 Issue 内容和 `WORKFLOW.md` 中的工作规范
-2. 分析现有代码库，理解架构上下文
-3. 创建功能分支并实现代码
-4. 编写对应的单元测试和集成测试
-5. 提交 PR 并附上实现说明
+### 推荐存储方案
 
-### 3. GitHub Actions — 自动化流水线
+| 用途 | 技术选型 |
+|-----|---------|
+| 结构化数据 | PostgreSQL |
+| 向量检索 | pgvector / Milvus / Weaviate |
+| 图片 / 音频 | 对象存储（S3 / OSS） |
+| 会话状态 & 短期记忆 | Redis |
+| 全文关键词搜索（可选） | Meilisearch |
 
-三条核心流水线：
+---
+
+## MVP 规划
+
+第一版聚焦一个强闭环，不做全能 Agent：
 
 ```
-ci.yml          → 每次 PR/Push 触发
-                   ├── 代码格式检查
-                   ├── 单元测试
-                   ├── 集成测试
-                   └── 安全扫描
-
-copilot-agent.yml → Issue 打标签触发
-                   ├── 启动 Copilot Agent
-                   ├── 监控执行状态
-                   └── 更新 Issue 状态
-
-release.yml     → 合并到 main 触发
-                   ├── 版本打标
-                   ├── 构建 Docker 镜像
-                   └── 部署到目标环境
+上传/提问 → 识别/讲解 → 引导观察 → 保存记录
 ```
 
-### 4. GitHub Code Review — 质量把关
+### MVP 功能
+1. 物种问答（文字描述 + 检索）
+2. 图片识别 + 候选确认（多轮澄清）
+3. 观察记录自动生成
+4. 基于记录的简单推荐
 
-代码审查是唯一的人工质量关卡：
+### MVP 数据范围
+先只覆盖一个场景：**小区 + 公园常见 50 种物种**，保证内容质量。
 
-- **CODEOWNERS** 文件定义核心模块的必须审查人
-- **Branch Protection Rules** 强制要求 CI 通过 + 至少 1 人审查
-- PR 模板引导填写完整的变更说明和测试计划
-- AI 生成的代码需要更关注逻辑正确性和安全边界
+### MVP 页面
+- 首页（今日推荐 + 入口）
+- 聊天页（核心交互）
+- 物种详情页
+- 观察记录页
+- 我的成长页
+
+---
+
+## 技术栈
+
+### 前端
+- **Next.js** + **Tailwind CSS**（移动端优先，可扩展为 PWA）
+- 小程序适配层（后续阶段）
+
+### 后端
+- **Python FastAPI** + 自定义 tool calling orchestration（MVP 首选，比重框架更稳）
+- Agent 框架可选：LangGraph / LlamaIndex / Semantic Kernel
+
+### 模型层
+- 对话模型：支持 function calling 的大模型
+- 多模态模型：支持图片理解
+- Embedding 模型：物种知识检索
+- 可选视觉分类模型：初筛候选物种
+
+---
+
+## 儿童场景约束
+
+与普通 AI Agent 的最大差异在于**安全性与表达约束**，属于强制要求，不可妥协：
+
+### ✅ 必须做到
+- **置信度表达**：识别结果须说明不确定性
+  - ✔ "我猜它像……"
+  - ✔ "还需要看一下叶子才能确认"
+  - ✔ "不要仅凭这次回答去采摘或食用"
+- **安全提醒内建**：涉及野外采摘 / 接触昆虫 / 有毒植物 / 流浪动物，必须规则提醒
+- **年龄分层内容**：至少分三层（4–6岁 / 7–9岁 / 10岁+）
+
+### ❌ 禁止做的
+- 过度拟人化导致误导：
+  - ✗ "花朵故意把虫子骗过来"（误导因果）
+  - ✔ "种子像在旅行"（比喻可爱但无误导）
+- 无置信度的武断识别
+- 省略安全提示（即使孩子没问）
+
+---
+
+## 开发路线
+
+| 阶段 | 目标 |
+|-----|-----|
+| **第 1 阶段** | 定义物种 schema，录入 30–50 种常见物种，写儿童版 + 家长版描述，建立分类和标签体系 |
+| **第 2 阶段** | 基础问答 Agent：检索物种知识，切换儿童/家长版回答，给出观察建议 |
+| **第 3 阶段** | 识别与确认：上传图片 → 候选物种 → 多轮澄清 → 保存识别结果 |
+| **第 4 阶段** | 观察记录系统：自动生成观察日记，与物种知识绑定，形成用户成长档案 |
+| **第 5 阶段** | 推荐与复习：季节/地点任务推荐，自动复习混淆物种，成长轨迹展示 |
 
 ---
 
@@ -185,60 +365,37 @@ release.yml     → 合并到 main 触发
 
 ### 前置条件
 
-- GitHub 仓库（已启用 GitHub Copilot 和 Copilot Coding Agent）
-- Python 3.11+（或你的目标语言运行时）
-- [mise](https://mise.jdx.dev/) — 工具版本管理
+- Python 3.11+
+- Node.js 18+（前端）
 - Docker（可选，用于本地集成测试）
+- [mise](https://mise.jdx.dev/) — 工具版本管理
 
-### 1. 使用本模板
+### 克隆项目
 
 ```bash
-# 方式一：使用 GitHub Template 功能
-# 点击仓库页面的 "Use this template" 按钮
-
-# 方式二：克隆并重新初始化
-git clone https://github.com/handsondad/agentic-ai-for-coding.git my-ai-agent-project
-cd my-ai-agent-project
-rm -rf .git && git init
+git clone https://github.com/handsondad/agentic-ai-for-coding.git nature-dex
+cd nature-dex
 ```
 
-### 2. 初始化开发环境
+### 初始化开发环境
 
 ```bash
-# 安装依赖工具
+# 安装依赖
 make setup
 
 # 复制环境变量模板
 cp .env.example .env
-# 编辑 .env 填入你的 API Keys
+# 编辑 .env，填入大模型 API Key、数据库连接等配置
 ```
 
-### 3. 配置 WORKFLOW.md
-
-编辑根目录的 `WORKFLOW.md`，配置：
-- 你的项目特定的编码规范
-- AI Agent 的工作边界和约束
-- 任务验收标准的定义方式
-
-### 4. 配置 GitHub 仓库设置
+### 启动服务
 
 ```bash
-# 在 GitHub 仓库设置中启用：
-# Settings → General → Features → Issues ✓
-# Settings → Code and automation → Actions → Allow all actions ✓
-# Settings → Code and automation → Branches → Add branch protection rule for 'main'
-#   ├── Require a pull request before merging ✓
-#   ├── Require status checks to pass ✓ (选择 ci/test)
-#   └── Require conversation resolution ✓
-```
+# 启动后端
+make dev
 
-### 5. 创建你的第一个 AI 实现的功能
-
-```bash
-# 1. 创建 Issue（使用功能需求模板）
-# 2. 给 Issue 打上 'copilot' 标签
-# 3. 等待 Copilot Agent 自动创建 PR
-# 4. 审查并合并 PR
+# 运行测试
+make test
 ```
 
 ---
@@ -248,306 +405,53 @@ cp .env.example .env
 ```
 .
 ├── README.md                          # 本文档
-├── WORKFLOW.md                        # Symphony/Copilot Agent 工作规范
+├── WORKFLOW.md                        # Copilot Agent 工作规范
 ├── Makefile                           # 开发命令集合
 ├── .env.example                       # 环境变量模板
-├── .gitignore
 │
 ├── .github/
-│   ├── copilot-instructions.md        # GitHub Copilot 全局编码规范
-│   ├── ISSUE_TEMPLATE/
-│   │   ├── config.yml                 # Issue 模板配置
-│   │   ├── feature.yml                # 功能需求模板
-│   │   ├── bug.yml                    # Bug 报告模板
-│   │   └── task.yml                   # 开发任务模板
-│   ├── pull_request_template.md       # PR 描述模板
-│   └── workflows/
-│       ├── ci.yml                     # 持续集成流水线
-│       ├── copilot-agent.yml          # Copilot Agent 自动触发
-│       └── release.yml                # 版本发布流程
+│   ├── copilot-instructions.md        # Copilot 编码规范
+│   ├── ISSUE_TEMPLATE/                # Issue 模板
+│   └── workflows/                     # CI/CD 流水线
 │
 ├── docs/
 │   ├── architecture.md                # 系统架构文档
-│   ├── dev-guide.md                   # 开发者指南
-│   └── adr/                           # 架构决策记录
-│       └── 0001-record-architecture-decisions.md
+│   ├── species-schema.md              # 物种数据结构规范
+│   └── agent-tools.md                 # Agent Tool 设计文档
 │
 ├── src/
-│   ├── agent/                         # Agent 核心逻辑
-│   │   ├── __init__.py
-│   │   ├── core.py                    # Agent 主循环
-│   │   └── session.py                 # 会话管理
-│   ├── tools/                         # 工具/函数定义
-│   │   ├── __init__.py
-│   │   └── registry.py                # 工具注册中心
-│   ├── memory/                        # 记忆与状态管理
-│   │   ├── __init__.py
-│   │   └── store.py                   # 记忆存储
-│   └── api/                           # API 层
-│       ├── __init__.py
-│       └── routes.py                  # API 路由
+│   ├── agent/                         # Agent 编排逻辑
+│   │   ├── router.py                  # Router Agent
+│   │   ├── identify.py                # 识别 Agent
+│   │   ├── explain.py                 # 儿童讲解 Agent
+│   │   ├── observe.py                 # 观察引导 Agent
+│   │   ├── record.py                  # 记录 Agent
+│   │   └── recommend.py               # 推荐 Agent
+│   ├── tools/                         # Agent 可调用工具
+│   │   ├── species_search.py
+│   │   ├── identify_from_image.py
+│   │   ├── compare_species.py
+│   │   ├── create_observation.py
+│   │   └── safety_check.py
+│   ├── knowledge/                     # 知识库管理
+│   │   ├── species_store.py
+│   │   └── embedding.py
+│   ├── memory/                        # 用户记忆 & 会话状态
+│   │   └── store.py
+│   └── api/                           # API 路由层
+│       └── routes.py
+│
+├── data/
+│   └── species/                       # 物种知识库（结构化数据）
 │
 └── tests/
-    ├── unit/                          # 单元测试
-    ├── integration/                   # 集成测试
-    └── conftest.py                    # 测试配置
+    ├── unit/
+    ├── integration/
+    └── conftest.py
 ```
-
----
-
-## 工作流详解
-
-### Issue 生命周期
-
-```
-创建 Issue
-    │
-    ▼
-[backlog] → 待优先级排序
-    │
-    ▼
-[ai-ready] → 需求已完善，可以交给 AI 实现
-    │ (打 'copilot' 标签触发 Agent)
-    ▼
-[in-progress] → Copilot Agent 正在实现
-    │
-    ▼
-[human-review] → PR 已创建，等待人工审查
-    │
-    ▼
-[done] → 合并完成，自动关闭 Issue
-```
-
-### PR 审查重点
-
-作为代码审查者，面对 AI 生成的代码时，重点关注：
-
-| 审查维度 | 检查要点 |
-|---------|---------|
-| **逻辑正确性** | 是否正确理解需求？边界条件处理是否完整？ |
-| **安全性** | 输入验证、权限控制、敏感信息处理 |
-| **架构合理性** | 是否符合项目架构规范？模块边界是否清晰？ |
-| **测试覆盖** | 关键路径是否有测试？测试用例是否有意义？ |
-| **可维护性** | 代码是否易于理解？文档是否充分？ |
-
----
-
-## Symphony 集成
-
-[Symphony](https://github.com/openai/symphony) 是 OpenAI 开源的 AI Agent 任务调度服务，可以自动监听任务追踪系统并并发执行多个 Agent 会话。
-
-### 工作原理
-
-```
-Symphony 服务（长驻进程）
-    │
-    ├── 每 30 秒轮询 GitHub Issues（active_states 中的 Issue）
-    │
-    ├── 为每个 Issue 创建隔离工作目录
-    │
-    ├── 加载 WORKFLOW.md（工作规范 + Agent Prompt 模板）
-    │
-    ├── 启动 Codex App Server 会话
-    │   └── 传入 Issue 上下文 + 项目规范
-    │
-    ├── 监控执行进度（CI状态、PR创建、测试结果）
-    │
-    └── 工作完成 → Issue 转为 Human Review 状态
-```
-
-### 配置 Symphony
-
-本仓库的 `WORKFLOW.md` 已预配置为与 GitHub Issues 协同工作。要启动 Symphony：
-
-```bash
-# 方式一：使用官方 Elixir 实现
-git clone https://github.com/openai/symphony
-cd symphony/elixir
-# 参考 elixir/README.md 配置环境
-
-# 方式二：让 AI 自己实现一个 Symphony（支持 GitHub Issues）
-# 告诉你的 AI 助手：
-# "按照 https://github.com/openai/symphony/blob/main/SPEC.md 实现 Symphony，
-#  tracker 适配 GitHub Issues API，使用 Python 语言"
-```
-
-### WORKFLOW.md 关键配置
-
-`WORKFLOW.md` 是 Symphony 的配置文件和 Agent Prompt 模板，分为两部分：
-
-**前置配置（YAML front matter）**：
-```yaml
----
-tracker:
-  kind: github          # 使用 GitHub Issues 作为任务追踪
-  api_key: $GITHUB_TOKEN
-  repo: owner/repo
-  active_states:        # 触发 AI 处理的 Issue 状态标签
-    - "ai-ready"
-  terminal_states:
-    - "done"
-    - "cancelled"
-
-agent:
-  max_concurrent_agents: 3   # 最多同时运行 3 个 Agent
-  max_turns: 30
-
-polling:
-  interval_ms: 30000         # 每 30 秒检查一次
----
-```
-
-**Prompt 模板（Markdown 正文）**：
-```markdown
-你是一个专业的 AI 软件工程师，负责实现以下 GitHub Issue：
-
-Issue: {{ issue.title }}
-描述: {{ issue.description }}
-
-请按照项目的编码规范（见 .github/copilot-instructions.md）实现此功能...
-```
-
----
-
-## 分支与发布策略
-
-### 分支策略
-
-```
-main                   ← 生产环境，受保护分支
-  └── develop          ← 开发主线（可选，小团队可省略）
-        ├── feat/xxx   ← 功能分支（AI Agent 创建）
-        ├── fix/xxx    ← 修复分支
-        └── chore/xxx  ← 工程任务分支
-```
-
-**分支命名规范**（Copilot Agent 自动遵循）：
-- `feat/{issue-number}-{short-description}`
-- `fix/{issue-number}-{short-description}`
-- `chore/{issue-number}-{short-description}`
-
-### 版本发布
-
-采用 [语义化版本](https://semver.org/lang/zh-CN/)：
-
-```
-MAJOR.MINOR.PATCH
-  │      │     └── Bug 修复
-  │      └──────── 新功能（向后兼容）
-  └─────────────── 破坏性变更
-```
-
-发布触发方式：
-```bash
-# 创建版本标签即触发发布流水线
-git tag -a v1.2.0 -m "Release v1.2.0"
-git push origin v1.2.0
-```
-
----
-
-## 团队协作规范
-
-### 角色分工（10人以内团队）
-
-| 角色 | 职责 | 与 AI 的协作方式 |
-|-----|------|----------------|
-| **Product Lead** | 产品方向、需求优先级 | 创建高质量 Issue，定义验收标准 |
-| **Tech Lead** | 架构决策、技术规范 | 维护 `WORKFLOW.md` 和 `copilot-instructions.md` |
-| **工程师（1-5人）** | 代码审查、复杂逻辑 | 审查 AI PR，处理需要深度专业知识的任务 |
-| **QA（可选）** | 质量验证 | 完善测试用例，确保覆盖率 |
-
-### 有效的 Issue 写作指南
-
-AI 能否正确实现功能，很大程度上取决于 Issue 的质量：
-
-✅ **好的 Issue**：
-```markdown
-## 用户故事
-作为 API 用户，我希望能够通过 POST /chat/completions 发送多轮对话，
-以便进行连续的对话交互。
-
-## 验收标准
-- [ ] 支持 messages 数组（包含 role 和 content 字段）
-- [ ] 返回标准 OpenAI 兼容格式的响应
-- [ ] 支持 stream=true 的流式响应
-- [ ] 错误时返回正确的 HTTP 状态码和错误信息
-
-## 技术规格
-- 端点：POST /api/v1/chat/completions
-- 认证：****** auth middleware）
-- 测试：需要单元测试 + 集成测试（使用 httpx 异步测试）
-```
-
-❌ **不好的 Issue**：
-```markdown
-做一个聊天 API
-```
-
-### 代码审查清单
-
-PR 审查时使用此清单：
-
-- [ ] 功能逻辑正确，满足 Issue 中的所有验收标准
-- [ ] 无明显安全漏洞（SQL 注入、XSS、路径遍历等）
-- [ ] 测试覆盖核心逻辑（覆盖率 > 80%）
-- [ ] 代码符合项目架构规范
-- [ ] PR 描述清晰，包含变更摘要
-
----
-
-## 常见问题
-
-### Q: AI Agent 生成的代码质量如何保证？
-
-A: 通过三层机制保障：
-1. **规范约束**：`WORKFLOW.md` 和 `copilot-instructions.md` 定义了编码标准
-2. **自动化测试**：CI 必须通过才能合并
-3. **人工审查**：每个 PR 都需要工程师审查
-
-### Q: AI Agent 是否会理解我们的业务逻辑？
-
-A: AI Agent 通过以下方式理解项目上下文：
-- 读取现有代码库结构
-- 参考 `docs/architecture.md` 中的架构文档
-- 遵循 `WORKFLOW.md` 中的项目规范
-- 从 Issue 的描述中获取具体需求
-
-因此，**高质量的文档和清晰的需求描述**是成功的关键。
-
-### Q: 多个 AI Agent 并发执行会有冲突吗？
-
-A: Symphony 通过隔离工作空间机制避免冲突：
-- 每个 Issue 有独立的工作目录
-- 每个 Agent 在独立分支上工作
-- 合并冲突通过标准 Git 流程解决
-
-### Q: 如何处理 AI 无法解决的复杂任务？
-
-A: 建议策略：
-1. 将复杂任务拆解为多个小 Issue
-2. 在 Issue 中提供更详细的技术规格
-3. 工程师先写接口定义和测试，再让 AI 实现
-4. 对于核心算法或业务逻辑，由工程师实现后提交
-
-### Q: Symphony 目前是否原生支持 GitHub Issues？
-
-A: Symphony v1 spec 原生支持 Linear。对于 GitHub Issues，有两种方案：
-1. 使用本模板的 `copilot-agent.yml` GitHub Actions 工作流直接触发 Copilot Agent（推荐，无需 Symphony）
-2. 基于 Symphony Spec 自己实现支持 GitHub Issues 的适配器
-
----
-
-## 参考资源
-
-- [openai/symphony](https://github.com/openai/symphony) — AI Agent 任务调度规范
-- [Symphony SPEC.md](https://github.com/openai/symphony/blob/main/SPEC.md) — 详细技术规格
-- [GitHub Copilot Coding Agent](https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent) — 官方文档
-- [Harness Engineering](https://openai.com/index/harness-engineering/) — OpenAI 工程实践
-- [语义化版本控制](https://semver.org/lang/zh-CN/) — 版本管理规范
 
 ---
 
 ## 许可证
 
-本模板基于 [Apache License 2.0](LICENSE) 开源。
+本项目基于 [Apache License 2.0](LICENSE) 开源。
