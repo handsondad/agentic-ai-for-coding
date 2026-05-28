@@ -1,0 +1,143 @@
+name: 版本发布
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  validate:
+    name: 发布前验证
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装依赖
+        run: |
+          pip install -e ".[dev]" 2>/dev/null || pip install pytest pytest-asyncio
+
+      - name: 运行完整测试套件
+        run: pytest tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+  build:
+    name: 构建
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 获取版本号
+        id: get-version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装构建工具
+        run: pip install build
+
+      - name: 构建 Python 包
+        run: python -m build
+
+      - name: 构建 Docker 镜像
+        if: hashFiles('Dockerfile') != ''
+        run: |
+          docker build \
+            --tag ghcr.io/${{ github.repository }}:${{ steps.get-version.outputs.version }} \
+            --tag ghcr.io/${{ github.repository }}:latest \
+            .
+
+      - name: 推送 Docker 镜像
+        if: hashFiles('Dockerfile') != ''
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.repository }}:${{ steps.get-version.outputs.version }}
+          docker push ghcr.io/${{ github.repository }}:latest
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  release:
+    name: 创建 Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: 生成 Release Notes
+        id: release-notes
+        run: |
+          # 获取上一个标签
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          CURRENT_TAG="${{ needs.build.outputs.version }}"
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "## 变更日志" > release_notes.md
+            echo "" >> release_notes.md
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" \
+              --no-merges >> release_notes.md
+          else
+            echo "## 首次发布" > release_notes.md
+            echo "" >> release_notes.md
+            echo "初始版本 ${CURRENT_TAG}" >> release_notes.md
+          fi
+
+          cat release_notes.md
+
+      - name: 创建 GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const notes = fs.readFileSync('release_notes.md', 'utf8');
+            const version = '${{ needs.build.outputs.version }}';
+
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: version,
+              name: `Release ${version}`,
+              body: notes,
+              draft: false,
+              prerelease: version.includes('-')
+            });
+
+            // 上传构建产物到 Release
+            const distFiles = require('fs').readdirSync('dist/');
+            for (const file of distFiles) {
+              const content = fs.readFileSync(`dist/${file}`);
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                name: file,
+                data: content
+              });
+            }

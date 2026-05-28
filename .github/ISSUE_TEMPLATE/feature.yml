@@ -1,0 +1,84 @@
+name: 🚀 功能需求
+description: 提出新功能或功能改进需求，AI Agent 将自动实现
+title: "feat: "
+labels: ["feature", "ai-ready"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📝 功能需求说明
+        
+        请填写详细的需求信息，越详细 AI Agent 实现的越准确。
+        **提示**：好的需求描述应该让 AI 无需额外沟通即可完成实现。
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: 用户故事
+      description: 用"作为...，我希望...，以便..."格式描述需求
+      placeholder: |
+        作为 [用户角色]，
+        我希望 [功能描述]，
+        以便 [实现的价值/目标]。
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: 验收标准
+      description: 列出具体的、可测试的验收条件（AI 将根据这些标准编写测试）
+      placeholder: |
+        - [ ] 功能点 1：具体描述预期行为
+        - [ ] 功能点 2：具体描述预期行为
+        - [ ] 边界条件：描述边界情况的处理
+        - [ ] 错误处理：描述失败场景的处理方式
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-spec
+    attributes:
+      label: 技术规格（可选）
+      description: 提供技术实现建议，帮助 AI 理解期望的实现方式
+      placeholder: |
+        - 涉及模块：src/agent/, src/api/
+        - API 端点：POST /api/v1/xxx
+        - 数据模型：需要新增 XxxModel
+        - 依赖：需要使用 xxx 库
+        - 性能要求：响应时间 < 500ms
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 背景与上下文
+      description: 提供相关的背景信息，帮助 AI 理解为什么需要这个功能
+      placeholder: |
+        当前的问题是...
+        用户反馈...
+        相关的 Issue/PR...
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      options:
+        - 🔴 P0 - 紧急（阻塞核心功能）
+        - 🟠 P1 - 高（本迭代必须完成）
+        - 🟡 P2 - 中（计划内功能）
+        - 🟢 P3 - 低（锦上添花）
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 我已经搜索了现有 Issues，确认这不是重复需求
+          required: true
+        - label: 验收标准是具体且可测试的
+          required: true
+        - label: 我理解 AI Agent 将基于此 Issue 自动实现代码
+          required: true
