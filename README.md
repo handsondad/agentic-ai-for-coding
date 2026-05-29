@@ -127,6 +127,7 @@ Symphony 服务
 
 **关键实践**：
 - Issue 描述必须足够详细，让 AI 无需额外沟通即可理解需求
+- 可复用 Prompt 统一放在 `.github/prompts/`，例如 `create-issue-prompt.md` 用于按 Issue Template 生成规范化提单内容
 - 使用标签体系管理任务状态：`ai-ready`、`in-progress`、`human-review`
 - 通过 GitHub Projects 管理任务优先级和进度
 
@@ -260,6 +261,8 @@ cp .env.example .env
 │   │   ├── feature.yml                # 功能需求模板
 │   │   ├── bug.yml                    # Bug 报告模板
 │   │   └── task.yml                   # 开发任务模板
+│   ├── prompts/
+│   │   └── create-issue-prompt.md     # 按 Issue Template 生成提单内容的 Prompt
 │   ├── pull_request_template.md       # PR 描述模板
 │   └── workflows/
 │       ├── ci.yml                     # 持续集成流水线
