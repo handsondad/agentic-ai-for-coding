@@ -413,6 +413,43 @@ Issue: {{ issue.title }}
 5. 自动执行质量门禁（默认 `make lint` + `make test`）
 6. 自动提交分支并创建 PR
 
+### 前置步骤
+
+在首次试跑前，建议先安装并认证 GitHub CLI，便于创建测试 Issue、检查登录状态和手工补救 PR 操作。
+
+```bash
+# Windows
+winget install --id GitHub.cli -e
+
+# macOS
+brew install gh
+
+# Linux
+sudo apt install gh
+
+# 认证
+gh auth login
+
+# 验证
+gh auth status
+```
+
+如果 `winget` 安装被系统策略或交互式 MSI 中断，可以改用“提取式安装”作为兜底方案：
+
+```powershell
+$msi = "$env:TEMP\gh_2.93.0_windows_amd64.msi"
+Invoke-WebRequest -Uri "https://github.com/cli/cli/releases/download/v2.93.0/gh_2.93.0_windows_amd64.msi" -OutFile $msi
+$target = "$env:LOCALAPPDATA\Programs\GitHubCLIExtracted"
+Start-Process msiexec.exe -ArgumentList @('/a', $msi, '/qn', "TARGETDIR=$target") -Wait
+[Environment]::SetEnvironmentVariable(
+  'Path',
+  [Environment]::GetEnvironmentVariable('Path', 'User') + ";$target\Program Files\GitHub CLI",
+  'User'
+)
+```
+
+如果你不想使用 `gh`，至少也需要准备好 `GITHUB_TOKEN`，否则无法通过 API 创建 Issue、评论或 PR。
+
 ### 运行方式（脚本优先）
 
 ```bash
@@ -465,6 +502,24 @@ sh .github/automation/scripts/run-forever.sh
 
 ```powershell
 schtasks /Create /SC MINUTE /MO 1 /TN "AI-Issue-AutoRunner" /TR "pwsh -NoProfile -File C:\\path\\to\\repo\\.github\\automation\\scripts\\run-once.ps1" /F
+```
+
+### Backlog 一键发布到 GitHub Issue
+
+如果你先在 `.github/issues-backlog/` 里维护草稿，可用以下命令一键完成：
+
+1. 读取本地 frontmatter（title/labels/body）
+2. 创建 GitHub Issue
+3. 自动回填本地状态和链接
+
+```powershell
+pwsh .github/automation/scripts/publish-backlog-issue.ps1 \
+  .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
+```
+
+```bash
+sh .github/automation/scripts/publish-backlog-issue.sh \
+  .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
 ```
 
 ### 注意事项

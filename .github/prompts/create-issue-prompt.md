@@ -6,6 +6,22 @@
 
 按照 `.github/ISSUE_TEMPLATE` 中的规范输出高质量 Issue，确保 AI Agent 可以直接执行。
 
+## 自动发布流程（推荐）
+
+当用户明确要求“直接创建到 GitHub”时，不要只输出文本草稿。请按以下流程自动执行：
+
+1. 在 `.github/issues-backlog/<type>/YYYYMMDD/` 生成 backlog 文件（`status: ready`），文件名使用 `<short-title>.md`。
+2. 调用发布脚本自动创建 GitHub Issue：
+  - PowerShell: `.github/automation/scripts/publish-backlog-issue.ps1`
+  - Shell: `.github/automation/scripts/publish-backlog-issue.sh`
+3. 发布成功后，确保本地文件自动回填：
+  - `status: published`
+  - `github_issue_number`
+  - `github_issue_url`
+4. 最终回复中必须给出：Issue URL + 本地文件路径。
+
+如果发布失败，返回最小阻塞点（如 `gh` 未登录、labels 不存在、权限不足），并保留 backlog 文件供重试。
+
 ## 输出规则
 
 1. 先判断任务类型：`feature` / `bug` / `task`。

@@ -9,8 +9,11 @@
 ├── README.md
 ├── TEMPLATE.md
 ├── feature/
+│   └── YYYYMMDD/
 ├── bug/
+│   └── YYYYMMDD/
 └── task/
+  └── YYYYMMDD/
 ```
 
 - `feature/`：功能需求类 backlog
@@ -19,8 +22,9 @@
 
 ## 2) 命名规则
 
-- 文件名必须使用：`YYYYMMDD-短标题.md`
-- 示例：`20260528-add-streaming-chat.md`
+- 使用“按天子目录”组织：`.github/issues-backlog/<type>/YYYYMMDD/<short-title>.md`
+- 文件名不再重复日期前缀，仅保留语义化短标题
+- 示例：`.github/issues-backlog/feature/20260602/add-streaming-chat.md`
 
 ## 3) 元数据（文件头）
 
@@ -52,22 +56,27 @@
 ## 5) 发布流程（单条）
 
 1. 从 backlog 中选择 `status: ready` 的文件
-2. 按文件内容在 GitHub 创建 Issue（推荐使用 `gh`）
-3. 发布成功后，回写本地文件：
-   - `status: published`
-   - `github_issue_number`
-   - `github_issue_url`
+2. 使用自动发布脚本创建 GitHub Issue 并自动回填本地元数据
 
-参考命令（示例）：
+推荐命令（Windows PowerShell）：
+
+```powershell
+pwsh .github/automation/scripts/publish-backlog-issue.ps1 \
+  .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
+```
+
+推荐命令（Linux/macOS）：
 
 ```bash
-# 从文件内容整理标题、正文后创建 Issue
-# 注意：labels 使用逗号分隔，需与仓库标签一致
-gh issue create \
-  --title "feat: 支持流式对话响应" \
-  --label "feature,ai-ready" \
-  --body-file .github/issues-backlog/feature/20260528-add-streaming-chat.md
+sh .github/automation/scripts/publish-backlog-issue.sh \
+  .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
 ```
+
+发布成功后会自动回填：
+
+- `status: published`
+- `github_issue_number`
+- `github_issue_url`
 
 ## 6) 批量发布约定
 
