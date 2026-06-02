@@ -494,7 +494,8 @@ pwsh .github/automation/scripts/init-automation-env.ps1 -Force
   - 本地 backlog/markdown 文件
 2. 生成独立 worktree 和 `.automation/issue-prompt.md`
 3. 用任意 code agent 工具在该 worktree 中继续开发
-4. 按 prompt 要求完成分支开发、测试、代码检查和提 PR
+4. 按 prompt 要求完成分支开发、测试、代码检查、提交和提 PR
+5. 用户只在 PR 阶段进行最终审核
 
 Windows PowerShell：
 
@@ -519,6 +520,8 @@ sh .github/automation/scripts/prepare-single-issue.sh --issue-file .github/issue
 ```
 
 这个入口只负责“单 issue 准备”，不会批量轮询，也不会自动处理整组 issue。
+
+推荐约定：单 issue 模式下，Agent 应默认自主完成“实现 -> 验证 -> commit -> push -> PR”，除非遇到权限、网络、凭据或需求冲突等阻塞，再回到用户这里处理。 
 
 ### 批量自动化（调度器）
 
