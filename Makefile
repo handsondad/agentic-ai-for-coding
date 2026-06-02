@@ -1,4 +1,4 @@
-.PHONY: help setup dev test test-unit test-integration lint format build clean gate gate-quick gate-full
+.PHONY: help setup dev test test-unit test-integration lint format build clean gate gate-quick gate-full pr-check
 
 # 默认目标：显示帮助
 help:
@@ -22,6 +22,7 @@ help:
 	@echo "  make format             自动格式化代码"
 	@echo "  make gate               运行统一质量门禁（quick）"
 	@echo "  make gate-full          运行统一质量门禁（full）"
+	@echo "  make pr-check           检查 PR 描述模板完整性"
 	@echo ""
 	@echo "构建："
 	@echo "  make build              构建 Python 包"
@@ -112,6 +113,10 @@ gate-quick:
 gate-full:
 	@echo "🧪 运行统一质量门禁（full）..."
 	python .github/automation/scripts/quality-gate.py --mode full
+
+pr-check:
+	@echo "🧪 检查 PR 描述模板完整性..."
+	python .github/automation/scripts/check-pr-template.py --body-file .automation/pr-body.md
 
 # ─────────────────────────────────────────────
 # 构建

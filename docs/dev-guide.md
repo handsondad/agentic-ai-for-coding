@@ -64,6 +64,9 @@ make gate
 # 统一质量门禁（full）
 make gate-full
 
+# PR 描述模板完整性检查（需先准备 .automation/pr-body.md）
+make pr-check
+
 # 自动格式化代码
 make format
 
@@ -164,6 +167,16 @@ make gate-full  # 完整门禁：在 quick 基础上增加 integration
 - `.automation/quality-gate-summary.md`（可直接粘贴到 PR/Issue 评论）
 
 若失败，报告会包含失败步骤、退出码与关键输出摘要，便于 agent 自动回填到 PR/Issue。
+
+### PR 模板完整性校验
+
+提交 PR 前建议先本地校验描述完整性：
+
+```bash
+python .github/automation/scripts/check-pr-template.py --body-file .automation/pr-body.md
+```
+
+CI 也会在 pull_request 事件中执行同一校验脚本（读取 `GITHUB_EVENT_PATH`），缺少必填章节或保留模板注释将直接失败。
 
 ### 测试层次
 

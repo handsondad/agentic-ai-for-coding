@@ -95,13 +95,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - name: 检查 PR 描述是否完整
-        uses: actions/github-script@v7
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
         with:
-          script: |
-            const body = context.payload.pull_request.body || '';
-            const requiredSections = ['背景', '变更摘要', '测试计划'];
-            const missingSections = requiredSections.filter(s => !body.includes(s));
-            if (missingSections.length > 0) {
-              core.setFailed(`PR 描述缺少以下必填部分：${missingSections.join(', ')}`);
-            }
+          python-version: "3.12"
+
+      - name: 检查 PR 描述是否完整
+        run: |
+          python .github/automation/scripts/check-pr-template.py --event-path "$GITHUB_EVENT_PATH"
