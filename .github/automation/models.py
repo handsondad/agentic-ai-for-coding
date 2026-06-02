@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 
@@ -46,6 +47,7 @@ class RuntimeSettings:
     agent_command: str | None
     quality_commands: list[str]
     base_branch: str
+    metrics_file: Path
     dry_run: bool
     use_skills: bool
     skills_file: Path | None
@@ -62,6 +64,8 @@ class GitHubIssue:
     state: str
     html_url: str
     labels: list[str]
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     @property
     def identifier(self) -> str:

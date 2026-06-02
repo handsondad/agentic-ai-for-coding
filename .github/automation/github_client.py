@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import ssl
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -192,6 +193,8 @@ def _normalize_issue(payload: Any) -> GitHubIssue | None:
     html_url = payload.get("html_url")
     body = payload.get("body")
     state = payload.get("state")
+    created_at = payload.get("created_at")
+    updated_at = payload.get("updated_at")
 
     if not isinstance(number, int):
         return None
@@ -207,7 +210,21 @@ def _normalize_issue(payload: Any) -> GitHubIssue | None:
         state=state.strip() if isinstance(state, str) else "open",
         html_url=html_url.strip(),
         labels=labels,
+        created_at=_parse_github_datetime(payload.get("created_at")),
+        updated_at=_parse_github_datetime(payload.get("updated_at")),
     )
+
+
+def _parse_github_datetime(value: Any) -> datetime | None:
+    """Parse GitHub ISO8601 timestamps."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+
+    normalized = value.strip().replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
 
 
 def _resolve_tls_verify() -> bool | str | ssl.SSLContext:

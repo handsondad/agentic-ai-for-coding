@@ -1,4 +1,4 @@
-.PHONY: help setup dev test test-unit test-integration lint format build clean gate gate-quick gate-full pr-check eval-replay
+.PHONY: help setup dev test test-unit test-integration lint format build clean gate gate-quick gate-full pr-check eval-replay metrics-snapshot
 
 # 默认目标：显示帮助
 help:
@@ -24,6 +24,7 @@ help:
 	@echo "  make gate-full          运行统一质量门禁（full）"
 	@echo "  make pr-check           检查 PR 描述模板完整性"
 	@echo "  make eval-replay        回放离线评估集"
+	@echo "  make metrics-snapshot   生成每周指标快照"
 	@echo ""
 	@echo "构建："
 	@echo "  make build              构建 Python 包"
@@ -122,6 +123,10 @@ pr-check:
 eval-replay:
 	@echo "🧪 回放离线评估集..."
 	python .github/automation/scripts/replay-eval.py --dataset .github/automation/evals/dataset.json --strategy candidate --baseline-strategy baseline
+
+metrics-snapshot:
+	@echo "📈 生成每周指标快照..."
+	python .github/automation/scripts/metrics-snapshot.py --period weekly
 
 # ─────────────────────────────────────────────
 # 构建

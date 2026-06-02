@@ -4,17 +4,21 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
+from datetime import UTC, datetime
 
 try:
     from .executor import IssuePipeline, PipelineError
-    from .failure_reporting import render_failure_markdown
+    from .failure_reporting import classify_failure, render_failure_markdown
+    from .metrics import ExecutionMetricEvent, append_event
     from .github_client import GitHubClient
-    from .models import GitHubIssue, RuntimeSettings
+    from .models import GitHubIssue, RuntimeSettings, slugify
 except ImportError:
     from executor import IssuePipeline, PipelineError
-    from failure_reporting import render_failure_markdown
+    from failure_reporting import classify_failure, render_failure_markdown
+    from metrics import ExecutionMetricEvent, append_event
     from github_client import GitHubClient
-    from models import GitHubIssue, RuntimeSettings
+    from models import GitHubIssue, RuntimeSettings, slugify
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +57,24 @@ class AutomationService:
     async def _run_with_guard(self, issue: GitHubIssue, semaphore: asyncio.Semaphore) -> None:
         async with semaphore:
             self._claimed.add(issue.number)
+            started_at = datetime.now(tz=UTC)
+            started_perf = time.perf_counter()
             try:
                 await self._mark_in_progress(issue)
                 result = await self._pipeline.run(issue)
             except PipelineError as exc:
+                await self._record_metrics_event(
+                    self._build_metric_event(
+                        issue=issue,
+                        started_at=started_at,
+                        started_perf=started_perf,
+                        success=False,
+                        pr_url=None,
+                        quality_results=[],
+                        failure_step="pipeline",
+                        failure_message=str(exc),
+                    )
+                )
                 logger.error("issue=%s 执行失败: %s", issue.number, exc)
                 await self._safe_comment(
                     issue.number,
@@ -65,6 +83,18 @@ class AutomationService:
                 await self._safe_add_labels(issue.number, ["ai-failed"])
                 return
             except Exception as exc:
+                await self._record_metrics_event(
+                    self._build_metric_event(
+                        issue=issue,
+                        started_at=started_at,
+                        started_perf=started_perf,
+                        success=False,
+                        pr_url=None,
+                        quality_results=[],
+                        failure_step="unexpected",
+                        failure_message=str(exc),
+                    )
+                )
                 logger.exception("issue=%s 执行出现未预期异常: %s", issue.number, exc)
                 await self._safe_comment(
                     issue.number,
@@ -89,6 +119,18 @@ class AutomationService:
 
             await self._safe_remove_label(issue.number, "ai-ready")
             await self._safe_remove_label(issue.number, "in-progress")
+            await self._record_metrics_event(
+                self._build_metric_event(
+                    issue=issue,
+                    started_at=started_at,
+                    started_perf=started_perf,
+                    success=True,
+                    pr_url=result.pr_url,
+                    quality_results=result.quality_results,
+                    failure_step=None,
+                    failure_message=None,
+                )
+            )
 
     async def _mark_in_progress(self, issue: GitHubIssue) -> None:
         await self._safe_add_labels(issue.number, ["in-progress"])
@@ -149,6 +191,59 @@ class AutomationService:
                 "Issues(读写) + Pull requests(读写) + Contents(读写)。",
                 issue_number,
             )
+
+    def _build_metric_event(
+        self,
+        issue: GitHubIssue,
+        started_at: datetime,
+        started_perf: float,
+        success: bool,
+        pr_url: str | None,
+        quality_results: list[object],
+        failure_step: str | None,
+        failure_message: str | None,
+    ) -> ExecutionMetricEvent:
+        completed_at = datetime.now(tz=UTC)
+        duration_ms = int((time.perf_counter() - started_perf) * 1000)
+        quality_gate_failures = sum(1 for item in quality_results if getattr(item, "exit_code", 0) != 0)
+        gate_passed = quality_gate_failures == 0 and success
+
+        failure_category = None
+        failure_reason = None
+        retryable = None
+        if failure_message:
+            classification = classify_failure(failure_message)
+            failure_category = classification.category
+            failure_reason = classification.reason
+            retryable = classification.retryable
+
+        return ExecutionMetricEvent(
+            issue_number=issue.number,
+            issue_title=issue.title,
+            issue_identifier=issue.identifier,
+            issue_created_at=issue.created_at.isoformat() if issue.created_at else None,
+            started_at=started_at.isoformat(),
+            completed_at=completed_at.isoformat(),
+            duration_ms=duration_ms,
+            success=success,
+            pr_created=bool(pr_url),
+            pr_url=pr_url,
+            quality_gate_passed=gate_passed,
+            quality_gate_failures=quality_gate_failures,
+            failure_step=failure_step,
+            failure_message=failure_message,
+            failure_category=failure_category,
+            failure_reason=failure_reason,
+            retryable=retryable,
+            labels=issue.labels,
+            branch_name=f"ai/issue-{issue.number}-{slugify(issue.title, 36)}",
+        )
+
+    async def _record_metrics_event(self, event: ExecutionMetricEvent) -> None:
+        try:
+            await asyncio.to_thread(append_event, self._settings.metrics_file, event)
+        except Exception as exc:
+            logger.warning("issue=%s 指标写入失败: %s", event.issue_number, exc)
 
 
 def filter_new_candidates(issues: list[GitHubIssue], claimed: set[int]) -> list[GitHubIssue]:

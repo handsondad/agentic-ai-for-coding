@@ -70,6 +70,9 @@ make pr-check
 # 离线评估集回放与策略对比
 make eval-replay
 
+# 每周在线指标快照
+make metrics-snapshot
+
 # 自动格式化代码
 make format
 
@@ -190,6 +193,19 @@ python .github/automation/scripts/replay-eval.py --dataset .github/automation/ev
 ```
 
 如果需要和历史评估结果对比，可以追加 `--compare-to <previous-report.json>`。脚本会同时输出 JSON 报告与 Markdown 摘要，便于纳入周报或 PR 评论。
+
+### 在线指标与周报
+
+自动化服务会把每次 issue 执行写入 `.automation/execution-metrics.jsonl`，周报脚本从该事件流聚合 KPI 并输出：
+
+- `.automation/weekly-metrics-snapshot.json`
+- `.automation/weekly-metrics-report.md`
+
+```bash
+python .github/automation/scripts/metrics-snapshot.py --period weekly
+```
+
+如果要对比上周结果，可追加 `--compare-to .automation/weekly-metrics-snapshot.previous.json` 或任意历史快照文件。
 
 ### 测试层次
 

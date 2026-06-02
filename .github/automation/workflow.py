@@ -53,6 +53,7 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     )
     agent_command = _opt_str(os.getenv("AUTOMATION_AGENT_COMMAND"))
     base_branch = os.getenv("GITHUB_BASE_BRANCH", "main").strip() or "main"
+    metrics_file_raw = os.getenv("AUTOMATION_METRICS_FILE", ".automation/execution-metrics.jsonl").strip()
     dry_run = _parse_bool(os.getenv("AUTOMATION_DRY_RUN", "false"))
     use_skills = _parse_bool(os.getenv("AUTOMATION_USE_SKILLS", "true"))
 
@@ -84,6 +85,7 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
         agent_command=agent_command,
         quality_commands=quality_commands,
         base_branch=base_branch,
+        metrics_file=(repo_root / metrics_file_raw).resolve(),
         dry_run=dry_run,
         use_skills=use_skills,
         skills_file=skills_file if use_skills else None,
