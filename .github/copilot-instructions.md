@@ -207,6 +207,21 @@ Closes #42
 
 6. **文档同步**：涉及流程行为变化（脚本入口、默认策略、审核边界）时，必须同步更新 `README.md` 或 `WORKFLOW.md`。
 
+## Issue 创建规范（强制）
+
+当用户要求“创建一个新 issue”时，必须遵循以下顺序：
+
+1. **先本地，后远端**：先在 `.github/issues-backlog/<type>/YYYYMMDD/` 创建 backlog 文件，再发布到 GitHub。
+2. **禁止跳过本地留档**：不允许直接只创建 GitHub Issue 而不保留本地文档。
+3. **发布后必须回填**：本地文件必须回填：
+    - `status: published`
+    - `github_issue_number`
+    - `github_issue_url`
+4. **优先使用发布脚本**：
+    - PowerShell: `.github/automation/scripts/publish-backlog-issue.ps1`
+    - Shell: `.github/automation/scripts/publish-backlog-issue.sh`
+5. **最终交付必须双链路可追踪**：回复中同时给出 GitHub Issue URL 与本地 backlog 文件路径。
+
 ## 禁止事项
 
 - ❌ 不在代码中存储 API Keys 或密码
