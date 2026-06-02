@@ -1,6 +1,6 @@
 ---
-# Symphony / Copilot Agent 工作流配置
-# 参考：https://github.com/openai/symphony/blob/main/SPEC.md
+# Automation / Copilot Agent 工作流配置
+# 参考：本仓库自动化执行规范
 
 tracker:
   kind: github
@@ -19,7 +19,7 @@ polling:
   interval_ms: 30000  # 每 30 秒轮询一次
 
 workspace:
-  root: $SYMPHONY_WORKSPACE_ROOT
+  root: $AUTOMATION_WORKSPACE_ROOT
 
 hooks:
   after_create: |

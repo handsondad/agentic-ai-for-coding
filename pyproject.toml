@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-agent"
 version = "0.1.0"
-description = "AI Agent 应用 — 基于 openai/symphony 开发流程模板"
+description = "AI Agent 应用 — 基于自动化流程模板"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
@@ -16,6 +16,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "openai>=1.50.0",
     "httpx>=0.27.0",
+    "pyyaml>=6.0.0",
 ]
 
 [project.optional-dependencies]

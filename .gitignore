@@ -81,8 +81,8 @@ logs/
 .env.local
 .env.*.local
 
-# Symphony 工作空间（本地运行时生成）
-symphony_workspaces/
+# Automation 工作空间（本地运行时生成）
+automation_workspaces/
 
 # 系统文件
 .DS_Store

@@ -1,6 +1,6 @@
 # AI Agent 项目开发流程模板
 
-> 基于 [openai/symphony](https://github.com/openai/symphony) 构建的 AI Agent 项目开发流程模板，深度集成 GitHub 生态工具，以 **AI for Coding** 为核心驱动力，适合 10 人以内的小团队打造生产级 AI Agent 产品。
+> 基于本仓库自动化调度方案构建的 AI Agent 项目开发流程模板，深度集成 GitHub 生态工具，以 **AI for Coding** 为核心驱动力，适合 10 人以内的小团队打造生产级 AI Agent 产品。
 
 ---
 
@@ -13,7 +13,7 @@
 - [快速开始](#快速开始)
 - [目录结构](#目录结构)
 - [工作流详解](#工作流详解)
-- [Symphony 集成](#symphony-集成)
+- [自动化集成](#自动化-集成)
 - [分支与发布策略](#分支与发布策略)
 - [团队协作规范](#团队协作规范)
 - [常见问题](#常见问题)
@@ -64,7 +64,7 @@
 │  Copilot Agent    →  AI 自主实现（任务执行）                        │
 │  GitHub Actions   →  CI/CD 与工作流编排                            │
 │  GitHub Code Rev  →  代码审查与质量保障                             │
-│  Symphony         →  AI Agent 任务调度编排                          │
+│  Automation Runner → AI Agent 任务调度编排                          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -100,12 +100,12 @@
    └─ 自动触发发布流水线
 ```
 
-### Symphony 编排模式（高级）
+### Automation 编排模式（高级）
 
-对于需要并发处理多个任务的场景，使用 Symphony 进行 AI Agent 任务调度：
+对于需要并发处理多个任务的场景，使用本地 Automation Runner 进行 AI Agent 任务调度：
 
 ```
-Symphony 服务
+Automation Runner 服务
 ├── 持续监听 GitHub Issues（标记为 ai-ready 状态）
 ├── 为每个 Issue 创建隔离工作空间
 ├── 启动 Codex/Copilot Agent 会话
@@ -249,7 +249,7 @@ cp .env.example .env
 ```
 .
 ├── README.md                          # 本文档
-├── WORKFLOW.md                        # Symphony/Copilot Agent 工作规范
+├── WORKFLOW.md                        # Automation/Copilot Agent 工作规范
 ├── Makefile                           # 开发命令集合
 ├── .env.example                       # 环境变量模板
 ├── .gitignore
@@ -335,14 +335,14 @@ cp .env.example .env
 
 ---
 
-## Symphony 集成
+## 自动化集成
 
-[Symphony](https://github.com/openai/symphony) 是 OpenAI 开源的 AI Agent 任务调度服务，可以自动监听任务追踪系统并并发执行多个 Agent 会话。
+本仓库内置本地 Automation Runner，用于自动监听 GitHub Issues 并并发执行多个 Agent 会话。
 
 ### 工作原理
 
 ```
-Symphony 服务（长驻进程）
+Automation Runner 服务（长驻进程）
     │
     ├── 每 30 秒轮询 GitHub Issues（active_states 中的 Issue）
     │
@@ -358,25 +358,13 @@ Symphony 服务（长驻进程）
     └── 工作完成 → Issue 转为 Human Review 状态
 ```
 
-### 配置 Symphony
+### 配置 Automation Runner
 
-本仓库的 `WORKFLOW.md` 已预配置为与 GitHub Issues 协同工作。要启动 Symphony：
-
-```bash
-# 方式一：使用官方 Elixir 实现
-git clone https://github.com/openai/symphony
-cd symphony/elixir
-# 参考 elixir/README.md 配置环境
-
-# 方式二：让 AI 自己实现一个 Symphony（支持 GitHub Issues）
-# 告诉你的 AI 助手：
-# "按照 https://github.com/openai/symphony/blob/main/SPEC.md 实现 Symphony，
-#  tracker 适配 GitHub Issues API，使用 Python 语言"
-```
+本仓库的 `WORKFLOW.md` 已预配置为与 GitHub Issues 协同工作。你可以直接使用 `.github/automation/` 下的运行脚本启动。
 
 ### WORKFLOW.md 关键配置
 
-`WORKFLOW.md` 是 Symphony 的配置文件和 Agent Prompt 模板，分为两部分：
+`WORKFLOW.md` 是 Automation Runner 的配置文件和 Agent Prompt 模板，分为两部分：
 
 **前置配置（YAML front matter）**：
 ```yaml
@@ -413,6 +401,91 @@ Issue: {{ issue.title }}
 ---
 
 ## 分支与发布策略
+
+## 本地自动执行器（Python 版）
+
+仓库已内置一个本地自动调度器（`.github/automation/`），实现核心流程：
+
+1. 轮询 GitHub Issues（按 `WORKFLOW.md` 的 `active_states` 标签筛选）
+2. 为每个任务创建本地 Git Worktree
+3. 加载 `WORKFLOW.md` 指令模板并渲染为 issue prompt
+4. 执行你配置的本地 AI 命令（如 Copilot/Codex/自定义脚本）
+5. 自动执行质量门禁（默认 `make lint` + `make test`）
+6. 自动提交分支并创建 PR
+
+### 运行方式（脚本优先）
+
+```bash
+# 1) 配置环境变量
+export GITHUB_TOKEN=ghp_xxx
+export GITHUB_REPOSITORY=owner/repo
+
+# 可选：指定 AI 执行命令模板
+# 可用占位符：{workspace} {workflow} {prompt} {issue_number} {issue_title} {issue_url}
+export AUTOMATION_AGENT_COMMAND='your-agent-cli --workspace "{workspace}" --prompt-file "{prompt}"'
+
+# 可选：覆盖质量门禁，多个命令用 ;; 分隔
+export AUTOMATION_QUALITY_COMMANDS='make lint;;make test'
+
+# 可选：启用/禁用团队 skills（默认开启）
+export AUTOMATION_USE_SKILLS='true'
+
+# 可选：指定 skills 配置文件（默认 .github/automation/skills/skills.yaml）
+export AUTOMATION_SKILLS_FILE='.github/automation/skills/skills.yaml'
+
+# 2) 单次执行（推荐给 Cron/计划任务）
+# Windows PowerShell
+pwsh .github/automation/scripts/run-once.ps1
+
+# Linux/macOS
+sh .github/automation/scripts/run-once.sh
+
+# 3) 常驻轮询执行
+# Windows PowerShell
+pwsh .github/automation/scripts/run-forever.ps1
+
+# Linux/macOS
+sh .github/automation/scripts/run-forever.sh
+```
+
+### 与 Cron/计划任务集成
+
+- Linux/macOS（每分钟）：
+
+```bash
+* * * * * cd /path/to/repo && /bin/sh .github/automation/scripts/run-once.sh >> .github/automation/cron.log 2>&1
+```
+
+- Windows 任务计划程序（每分钟）：
+  - 程序: `pwsh`
+  - 参数: `-NoProfile -File .github/automation/scripts/run-once.ps1`
+  - 起始于: 仓库根目录
+
+你也可以直接用命令行创建任务：
+
+```powershell
+schtasks /Create /SC MINUTE /MO 1 /TN "AI-Issue-AutoRunner" /TR "pwsh -NoProfile -File C:\\path\\to\\repo\\.github\\automation\\scripts\\run-once.ps1" /F
+```
+
+### 注意事项
+
+- 本地执行器不会直接调用 VS Code UI，而是通过 `AUTOMATION_AGENT_COMMAND` 适配你已有的 AI 执行入口。
+- 若命令失败，系统会自动在 Issue 下回写失败评论并打上 `ai-failed` 标签。
+- 若没有产生代码变更，会回写“未检测到代码变更”的评论，不会创建空 PR。
+
+### 团队 Skills 配置
+
+团队可在 `.github/automation/skills/skills.yaml` 统一定义执行步骤命令模板，当前支持步骤：
+
+- `run_agent`
+- `quality_gate`
+- `commit_and_push`
+
+当某个步骤的 `command` 为空时，系统自动回退到内置实现，保证稳定性。
+
+占位符说明见 `.github/automation/skills/README.md`。
+
+默认模板基于 `skill_runner.py` 统一承载步骤执行逻辑，适合团队复用并降低个人脚本差异。
 
 ### 分支策略
 
@@ -520,7 +593,7 @@ A: AI Agent 通过以下方式理解项目上下文：
 
 ### Q: 多个 AI Agent 并发执行会有冲突吗？
 
-A: Symphony 通过隔离工作空间机制避免冲突：
+A: Automation Runner 通过隔离工作空间机制避免冲突：
 - 每个 Issue 有独立的工作目录
 - 每个 Agent 在独立分支上工作
 - 合并冲突通过标准 Git 流程解决
@@ -533,18 +606,18 @@ A: 建议策略：
 3. 工程师先写接口定义和测试，再让 AI 实现
 4. 对于核心算法或业务逻辑，由工程师实现后提交
 
-### Q: Symphony 目前是否原生支持 GitHub Issues？
+### Q: 自动化流程是否原生支持 GitHub Issues？
 
-A: Symphony v1 spec 原生支持 Linear。对于 GitHub Issues，有两种方案：
-1. 使用本模板的 `copilot-agent.yml` GitHub Actions 工作流直接触发 Copilot Agent（推荐，无需 Symphony）
-2. 基于 Symphony Spec 自己实现支持 GitHub Issues 的适配器
+A: 本仓库的 Automation Runner 原生支持 GitHub Issues 轮询与执行。可选方案：
+1. 使用本模板的 `copilot-agent.yml` GitHub Actions 工作流直接触发 Copilot Agent
+2. 使用本仓库 `.github/automation/` 的本地轮询执行器（Cron/任务计划程序）
 
 ---
 
 ## 参考资源
 
-- [openai/symphony](https://github.com/openai/symphony) — AI Agent 任务调度规范
-- [Symphony SPEC.md](https://github.com/openai/symphony/blob/main/SPEC.md) — 详细技术规格
+- [WORKFLOW.md](WORKFLOW.md) — 自动化流程与 Agent 提示模板
+- [.github/automation/skills/README.md](.github/automation/skills/README.md) — 团队 Skills 配置说明
 - [GitHub Copilot Coding Agent](https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent) — 官方文档
 - [Harness Engineering](https://openai.com/index/harness-engineering/) — OpenAI 工程实践
 - [语义化版本控制](https://semver.org/lang/zh-CN/) — 版本管理规范
