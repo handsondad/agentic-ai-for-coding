@@ -272,6 +272,7 @@ cp .env.example .env
 ├── docs/
 │   ├── architecture.md                # 系统架构文档
 │   ├── dev-guide.md                   # 开发者指南
+│   ├── ai-coding-infra-executable-blueprint.md  # AI for Coding 基础设施可执行优化蓝图
 │   └── adr/                           # 架构决策记录
 │       └── 0001-record-architecture-decisions.md
 │
