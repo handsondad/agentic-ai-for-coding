@@ -23,25 +23,13 @@ workspace:
 
 hooks:
   after_create: |
-    # 工作空间初始化：安装依赖
-    if [ -f requirements.txt ]; then
-      pip install -r requirements.txt
-    fi
-    if [ -f pyproject.toml ]; then
-      pip install -e ".[dev]"
-    fi
-    echo "工作空间初始化完成"
+    python "{{ repo_root }}/.github/automation/scripts/workspace-hooks.py" after-create
 
   before_run: |
-    # 每次 Agent 运行前同步最新代码
-    git fetch origin main
-    echo "代码同步完成"
+    python "{{ repo_root }}/.github/automation/scripts/workspace-hooks.py" before-run --base-branch "{{ base_branch }}"
 
   after_run: |
-    # 运行后清理临时文件
-    find . -name "*.pyc" -delete
-    find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-    echo "清理完成"
+    python "{{ repo_root }}/.github/automation/scripts/workspace-hooks.py" after-run
 
 agent:
   max_concurrent_agents: 3      # 最多同时处理 3 个 Issue
@@ -138,7 +126,7 @@ codex:
 
 ## 技术栈参考
 
-- **语言**：Python 3.11+
+- **语言**：Python 3.12+
 - **测试框架**：pytest + pytest-asyncio
 - **代码检查**：ruff（格式化 + lint）
 - **类型检查**：mypy

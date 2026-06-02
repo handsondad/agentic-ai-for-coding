@@ -8,7 +8,7 @@
 
 ## 技术栈
 
-- **语言**：Python 3.11+
+- **语言**：Python 3.12+
 - **测试**：pytest, pytest-asyncio, pytest-cov
 - **代码质量**：ruff (lint + format), mypy
 - **依赖管理**：pyproject.toml + pip

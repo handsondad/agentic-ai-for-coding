@@ -175,3 +175,38 @@ prompt
 
     assert settings.use_skills is False
     assert settings.skill_commands == {}
+
+
+def test_load_runtime_settings_renders_hook_templates(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """应将 hook 模板中的仓库路径与基线分支渲染为运行时值。"""
+    workflow = tmp_path / "WORKFLOW.md"
+    workflow.write_text(
+        """---
+tracker:
+  kind: github
+  api_key: $GITHUB_TOKEN
+  repo: $GITHUB_REPOSITORY
+hooks:
+  after_create: 'python "{{ repo_root }}/tool.py" after-create'
+  before_run: 'python "{{ repo_root }}/tool.py" before-run --base-branch "{{ base_branch }}"'
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("GITHUB_TOKEN", "ghp_test_value")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
+    monkeypatch.setenv("AUTOMATION_REPO_ROOT", str(tmp_path / "repo"))
+    monkeypatch.setenv("GITHUB_BASE_BRANCH", "release")
+
+    settings = load_runtime_settings(workflow)
+
+    expected_repo_root = (tmp_path / "repo").resolve().as_posix()
+    assert settings.hooks.after_create == f'python "{expected_repo_root}/tool.py" after-create'
+    assert settings.hooks.before_run == (
+        f'python "{expected_repo_root}/tool.py" before-run --base-branch "release"'
+    )

@@ -51,38 +51,102 @@ class AutomationService:
     async def _run_with_guard(self, issue: GitHubIssue, semaphore: asyncio.Semaphore) -> None:
         async with semaphore:
             self._claimed.add(issue.number)
-            await self._mark_in_progress(issue)
             try:
+                await self._mark_in_progress(issue)
                 result = await self._pipeline.run(issue)
             except PipelineError as exc:
                 logger.error("issue=%s 执行失败: %s", issue.number, exc)
-                await self._github.comment_issue(
+                await self._safe_comment(
                     issue.number,
                     f"自动执行失败: {exc}\n\n请修复后重新打上 ai-ready 标签。",
                 )
-                await self._github.add_labels(issue.number, ["ai-failed"])
+                await self._safe_add_labels(issue.number, ["ai-failed"])
+                return
+            except Exception as exc:
+                logger.exception("issue=%s 执行出现未预期异常: %s", issue.number, exc)
+                await self._safe_comment(
+                    issue.number,
+                    f"自动执行异常中断: {exc}\n\n请检查 Token 权限和日志后重试。",
+                )
+                await self._safe_add_labels(issue.number, ["ai-failed"])
                 return
             finally:
                 self._claimed.discard(issue.number)
 
             if result.changed and result.pr_url:
-                await self._github.comment_issue(
+                await self._safe_comment(
                     issue.number,
                     f"自动处理完成，已创建 PR: {result.pr_url}",
                 )
-                await self._github.add_labels(issue.number, ["human-review"])
+                await self._safe_add_labels(issue.number, ["human-review"])
             else:
-                await self._github.comment_issue(
+                await self._safe_comment(
                     issue.number,
                     "自动执行完成，但未检测到代码变更。",
                 )
 
-            await self._github.remove_label(issue.number, "ai-ready")
-            await self._github.remove_label(issue.number, "in-progress")
+            await self._safe_remove_label(issue.number, "ai-ready")
+            await self._safe_remove_label(issue.number, "in-progress")
 
     async def _mark_in_progress(self, issue: GitHubIssue) -> None:
-        await self._github.add_labels(issue.number, ["in-progress"])
-        await self._github.remove_label(issue.number, "ai-ready")
+        await self._safe_add_labels(issue.number, ["in-progress"])
+        await self._safe_remove_label(issue.number, "ai-ready")
+
+    async def _safe_add_labels(self, issue_number: int, labels: list[str]) -> None:
+        try:
+            await self._github.add_labels(issue_number, labels)
+        except Exception as exc:
+            self._log_github_write_failure(
+                op="add_labels",
+                issue_number=issue_number,
+                detail=f"labels={labels}",
+                exc=exc,
+            )
+
+    async def _safe_remove_label(self, issue_number: int, label: str) -> None:
+        try:
+            await self._github.remove_label(issue_number, label)
+        except Exception as exc:
+            self._log_github_write_failure(
+                op="remove_label",
+                issue_number=issue_number,
+                detail=f"label={label}",
+                exc=exc,
+            )
+
+    async def _safe_comment(self, issue_number: int, body: str) -> None:
+        try:
+            await self._github.comment_issue(issue_number, body)
+        except Exception as exc:
+            self._log_github_write_failure(
+                op="comment_issue",
+                issue_number=issue_number,
+                detail="comment_body=<omitted>",
+                exc=exc,
+            )
+
+    def _log_github_write_failure(
+        self,
+        op: str,
+        issue_number: int,
+        detail: str,
+        exc: Exception,
+    ) -> None:
+        response = getattr(exc, "response", None)
+        status_code = getattr(response, "status_code", None)
+        logger.warning(
+            "issue=%s GitHub写操作失败 op=%s %s err=%s",
+            issue_number,
+            op,
+            detail,
+            exc,
+        )
+        if status_code == 403:
+            logger.error(
+                "issue=%s 检测到 403 Forbidden。请检查 Token 权限："
+                "Issues(读写) + Pull requests(读写) + Contents(读写)。",
+                issue_number,
+            )
 
 
 def filter_new_candidates(issues: list[GitHubIssue], claimed: set[int]) -> list[GitHubIssue]:

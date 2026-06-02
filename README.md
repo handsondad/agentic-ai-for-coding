@@ -187,7 +187,7 @@ release.yml     → 合并到 main 触发
 ### 前置条件
 
 - GitHub 仓库（已启用 GitHub Copilot 和 Copilot Coding Agent）
-- Python 3.11+（或你的目标语言运行时）
+- Python 3.12（或你的目标语言运行时）
 - [mise](https://mise.jdx.dev/) — 工具版本管理
 - Docker（可选，用于本地集成测试）
 
@@ -450,7 +450,77 @@ Start-Process msiexec.exe -ArgumentList @('/a', $msi, '/qn', "TARGETDIR=$target"
 
 如果你不想使用 `gh`，至少也需要准备好 `GITHUB_TOKEN`，否则无法通过 API 创建 Issue、评论或 PR。
 
+Windows 下可使用一键初始化脚本（推荐）：
+
+```powershell
+# 交互式输入 token，自动识别仓库并写入 User 级环境变量
+pwsh .github/automation/scripts/init-automation-env.ps1
+
+# 若需要覆盖已存在变量
+pwsh .github/automation/scripts/init-automation-env.ps1 -Force
+```
+
+该脚本会设置：
+
+- `GITHUB_TOKEN`
+- `GITHUB_REPOSITORY`
+- `AUTOMATION_AGENT_COMMAND`
+- `AUTOMATION_ADAPTER_BACKEND_COMMAND`
+
+其中 `AUTOMATION_AGENT_COMMAND` 默认会指向适配器入口：
+
+`powershell -NoProfile -ExecutionPolicy Bypass -File ".github/automation/scripts/run-agent-adapter.ps1" ...`
+
+你只需要把真实执行器命令配置到 `AUTOMATION_ADAPTER_BACKEND_COMMAND`，例如：
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+  "AUTOMATION_ADAPTER_BACKEND_COMMAND",
+  "your-agent-cli --workspace \"{workspace}\" --prompt-file \"{prompt}\"",
+  "User"
+)
+```
+
+可用占位符：`{workspace}`、`{prompt}`、`{issue_number}`、`{issue_title}`、`{issue_url}`、`{workflow}`。
+
 ### 运行方式（脚本优先）
+
+### 单 Issue 工作流（个人使用）
+
+如果你是个人处理单个 issue，不需要启动批量调度器。更直接的方式是：
+
+1. 选择单个来源：
+  - GitHub issue 编号
+  - 本地 backlog/markdown 文件
+2. 生成独立 worktree 和 `.automation/issue-prompt.md`
+3. 用任意 code agent 工具在该 worktree 中继续开发
+4. 按 prompt 要求完成分支开发、测试、代码检查和提 PR
+
+Windows PowerShell：
+
+说明：
+- `prepare-single-issue.ps1` 会优先读取当前进程环境变量；若未设置，会回退读取 Windows User 级别的 `GITHUB_TOKEN`、`GITHUB_REPOSITORY`、`AUTOMATION_CA_BUNDLE`、`AUTOMATION_TLS_NO_VERIFY`。
+- 当前 `WORKFLOW.md` 里的默认 hooks 已切换为跨平台 Python helper，并通过 `{{ repo_root }}` 渲染为主仓库绝对路径；Windows 与 Unix-like 环境会执行同一套 hook 逻辑，不再依赖 Git Bash。
+- 一次真实试跑记录见 `docs/automation-runner-e2e-report.md`。
+
+```powershell
+# 从 GitHub issue 准备单 issue 工作区
+powershell -NoProfile -ExecutionPolicy Bypass -File .github/automation/scripts/prepare-single-issue.ps1 -IssueNumber 6
+
+# 从本地 issue/backlog 文件准备单 issue 工作区
+powershell -NoProfile -ExecutionPolicy Bypass -File .github/automation/scripts/prepare-single-issue.ps1 -IssueFile .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
+```
+
+Linux/macOS：
+
+```bash
+sh .github/automation/scripts/prepare-single-issue.sh --issue-number 6
+sh .github/automation/scripts/prepare-single-issue.sh --issue-file .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
+```
+
+这个入口只负责“单 issue 准备”，不会批量轮询，也不会自动处理整组 issue。
+
+### 批量自动化（调度器）
 
 ```bash
 # 1) 配置环境变量
@@ -459,7 +529,10 @@ export GITHUB_REPOSITORY=owner/repo
 
 # 可选：指定 AI 执行命令模板
 # 可用占位符：{workspace} {workflow} {prompt} {issue_number} {issue_title} {issue_url}
-export AUTOMATION_AGENT_COMMAND='your-agent-cli --workspace "{workspace}" --prompt-file "{prompt}"'
+export AUTOMATION_AGENT_COMMAND='powershell -NoProfile -ExecutionPolicy Bypass -File ".github/automation/scripts/run-agent-adapter.ps1" -Workspace "{workspace}" -PromptFile "{prompt}" -IssueNumber "{issue_number}" -IssueTitle "{issue_title}" -IssueUrl "{issue_url}" -Workflow "{workflow}"'
+
+# 必填：配置适配器调用的真实 Agent 命令
+export AUTOMATION_ADAPTER_BACKEND_COMMAND='your-agent-cli --workspace "{workspace}" --prompt-file "{prompt}"'
 
 # 可选：覆盖质量门禁，多个命令用 ;; 分隔
 export AUTOMATION_QUALITY_COMMANDS='make lint;;make test'
@@ -469,6 +542,14 @@ export AUTOMATION_USE_SKILLS='true'
 
 # 可选：指定 skills 配置文件（默认 .github/automation/skills/skills.yaml）
 export AUTOMATION_SKILLS_FILE='.github/automation/skills/skills.yaml'
+
+# 可选：企业网络证书配置（推荐使用 CA 证书）
+export AUTOMATION_CA_BUNDLE='/path/to/corporate-ca.pem'
+
+# 可选：临时关闭 TLS 校验（仅排障使用，不推荐）
+export AUTOMATION_TLS_NO_VERIFY='false'
+
+# 默认行为：自动化客户端优先使用系统证书库（与 GitHub CLI 一致思路）
 
 # 2) 单次执行（推荐给 Cron/计划任务）
 # Windows PowerShell

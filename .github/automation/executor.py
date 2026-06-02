@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -46,14 +47,22 @@ class IssuePipeline:
         await self._render_issue_prompt(issue, worktree_path)
 
         if self._settings.hooks.before_run:
-            await self._run_command(self._settings.hooks.before_run, cwd=worktree_path)
+            await self._run_hook_command(
+                hook_name="before_run",
+                command=self._settings.hooks.before_run,
+                cwd=worktree_path,
+            )
 
         try:
             await self._run_agent(issue, worktree_path)
             quality_results = await self._run_quality_checks(issue, worktree_path, branch_name)
         finally:
             if self._settings.hooks.after_run:
-                await self._run_command(self._settings.hooks.after_run, cwd=worktree_path)
+                await self._run_hook_command(
+                    hook_name="after_run",
+                    command=self._settings.hooks.after_run,
+                    cwd=worktree_path,
+                )
 
         changed = await self._has_git_changes(worktree_path)
         if not changed:
@@ -87,10 +96,18 @@ class IssuePipeline:
         )
 
     async def _prepare_worktree(self, path: Path, branch_name: str) -> None:
-        await self._run_command(
-            f"git fetch origin {self._settings.base_branch}",
-            cwd=self._settings.repo_root,
-        )
+        skip_fetch = os.getenv("AUTOMATION_SKIP_GIT_FETCH", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+        }
+        if skip_fetch:
+            logger.warning("AUTOMATION_SKIP_GIT_FETCH enabled; skipping remote fetch step.")
+        else:
+            await self._run_command(
+                f"git fetch origin {self._settings.base_branch}",
+                cwd=self._settings.repo_root,
+            )
 
         if not path.exists():
             await self._run_command(
@@ -105,7 +122,11 @@ class IssuePipeline:
                 cwd=self._settings.repo_root,
             )
             if self._settings.hooks.after_create:
-                await self._run_command(self._settings.hooks.after_create, cwd=path)
+                await self._run_hook_command(
+                    hook_name="after_create",
+                    command=self._settings.hooks.after_create,
+                    cwd=path,
+                )
             return
 
         status = await self._run_command("git status --porcelain", cwd=path, check=False)
@@ -221,6 +242,16 @@ class IssuePipeline:
 
         message = f"fix(issue-{issue.number}): {issue.title}"
         await self._run_command(f"git commit -m {_quote(message)}", cwd=worktree_path)
+
+        skip_push = os.getenv("AUTOMATION_SKIP_GIT_PUSH", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+        }
+        if skip_push:
+            logger.warning("AUTOMATION_SKIP_GIT_PUSH enabled; skipping git push step.")
+            return
+
         await self._run_command(f"git push -u origin {branch_name}", cwd=worktree_path)
 
     def _build_skill_context(
@@ -282,6 +313,24 @@ class IssuePipeline:
             )
         return result
 
+    async def _run_hook_command(self, hook_name: str, command: str, cwd: Path) -> None:
+        result = await self._run_command(command, cwd=cwd, check=False)
+        if result.exit_code == 0:
+            return
+
+        strict_hooks = os.getenv("AUTOMATION_HOOKS_STRICT", "false").strip().lower()
+        strict = strict_hooks in {"1", "true", "yes"}
+
+        message = (
+            f"Hook 执行失败 name={hook_name} exit_code={result.exit_code}\n"
+            f"command:\n{command}\n"
+            f"output:\n{result.stdout}"
+        )
+        if strict:
+            raise PipelineError(message)
+
+        logger.warning("%s", message)
+
 
 class CommandResult:
     """命令执行结果。"""
@@ -294,14 +343,41 @@ class CommandResult:
 
 def _exec_shell(command: str, cwd: Path) -> CommandResult:
     if os.name == "nt":
-        powershell_executable = r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-        process = subprocess.run(  # noqa: S603
-            [powershell_executable, "-NoProfile", "-Command", command],
-            cwd=str(cwd),
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        use_bash = _should_use_bash_on_windows(command)
+        if use_bash:
+            bash_executable = _resolve_bash_executable()
+            if bash_executable is not None:
+                process = subprocess.run(  # noqa: S603
+                    [bash_executable, "-lc", command],
+                    cwd=str(cwd),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    encoding="utf-8",
+                    errors="replace",
+                )
+            else:
+                powershell_executable = r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+                process = subprocess.run(  # noqa: S603
+                    [powershell_executable, "-NoProfile", "-Command", command],
+                    cwd=str(cwd),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    encoding="utf-8",
+                    errors="replace",
+                )
+        else:
+            powershell_executable = r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+            process = subprocess.run(  # noqa: S603
+                [powershell_executable, "-NoProfile", "-Command", command],
+                cwd=str(cwd),
+                capture_output=True,
+                text=True,
+                check=False,
+                encoding="utf-8",
+                errors="replace",
+            )
     else:
         shell_executable = "/bin/sh"
         process = subprocess.run(  # noqa: S603
@@ -310,10 +386,44 @@ def _exec_shell(command: str, cwd: Path) -> CommandResult:
             capture_output=True,
             text=True,
             check=False,
+            encoding="utf-8",
+            errors="replace",
         )
 
     output = (process.stdout or "") + (process.stderr or "")
     return CommandResult(exit_code=process.returncode, stdout=output, stderr=process.stderr or "")
+
+
+def _should_use_bash_on_windows(command: str) -> bool:
+    forced = os.getenv("AUTOMATION_WINDOWS_SHELL", "").strip().lower()
+    if forced in {"bash", "sh"}:
+        return True
+    if forced in {"powershell", "pwsh"}:
+        return False
+
+    # Auto-detect common POSIX shell patterns used in workflow hooks.
+    markers = ["if [", "fi", "find . -name", "2>/dev/null", "|| true"]
+    lowered = command.lower()
+    return any(marker in lowered for marker in markers)
+
+
+def _resolve_bash_executable() -> str | None:
+    explicit = os.getenv("AUTOMATION_BASH_EXE", "").strip()
+    if explicit:
+        return explicit
+
+    path_bash = shutil.which("bash")
+    if path_bash:
+        # Ignore Windows WSL launcher (system32\bash.exe), which is often unusable in this context.
+        lowered = path_bash.replace("/", "\\").lower()
+        if not lowered.endswith("\\windows\\system32\\bash.exe"):
+            return path_bash
+
+    git_bash = r"C:\Program Files\Git\bin\bash.exe"
+    if Path(git_bash).exists():
+        return git_bash
+
+    return None
 
 
 def _build_pr_body(issue: GitHubIssue, quality_results: list[QualityGateResult]) -> str:

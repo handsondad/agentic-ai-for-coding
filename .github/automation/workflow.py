@@ -48,12 +48,6 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     if str(workspace_root_raw).startswith("$") and workspace_root == Path(".").resolve():
         workspace_root = repo_root / ".worktrees"
 
-    hooks = WorkflowHooks(
-        after_create=_opt_str(hooks_map.get("after_create")),
-        before_run=_opt_str(hooks_map.get("before_run")),
-        after_run=_opt_str(hooks_map.get("after_run")),
-    )
-
     quality_commands = _parse_quality_commands(
         os.getenv("AUTOMATION_QUALITY_COMMANDS", "make lint;;make test")
     )
@@ -61,6 +55,12 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     base_branch = os.getenv("GITHUB_BASE_BRANCH", "main").strip() or "main"
     dry_run = _parse_bool(os.getenv("AUTOMATION_DRY_RUN", "false"))
     use_skills = _parse_bool(os.getenv("AUTOMATION_USE_SKILLS", "true"))
+
+    hooks = WorkflowHooks(
+        after_create=_render_hook_template(hooks_map.get("after_create"), repo_root, base_branch),
+        before_run=_render_hook_template(hooks_map.get("before_run"), repo_root, base_branch),
+        after_run=_render_hook_template(hooks_map.get("after_run"), repo_root, base_branch),
+    )
 
     skills_file_raw = os.getenv(
         "AUTOMATION_SKILLS_FILE",
@@ -178,6 +178,17 @@ def _opt_str(raw: Any) -> str | None:
         return None
     value = str(raw).strip()
     return value or None
+
+
+def _render_hook_template(raw: Any, repo_root: Path, base_branch: str) -> str | None:
+    value = _opt_str(raw)
+    if value is None:
+        return None
+
+    return (
+        value.replace("{{ repo_root }}", repo_root.as_posix())
+        .replace("{{ base_branch }}", base_branch)
+    )
 
 
 def _load_skill_commands(skills_file: Path, enabled: bool) -> dict[str, str]:
