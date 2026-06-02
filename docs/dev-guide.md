@@ -226,6 +226,22 @@ LOG_LEVEL=DEBUG make dev 2>&1 | grep "agent.core"
 
 ### 常见问题排查
 
+### 自动失败分类与修复建议
+
+当自动化流程失败时，可使用失败分类脚本快速得到标准化建议：
+
+```bash
+python .github/automation/scripts/classify-failure.py --text "HTTP 403 Forbidden"
+python .github/automation/scripts/classify-failure.py --input .automation/last-error.log --format markdown
+```
+
+分类结果会包含：
+
+- `category`：失败分类
+- `reason`：归因说明
+- `suggestion`：可执行修复建议
+- `retryable`：是否建议重试
+
 **Q: 测试失败，提示找不到模块**
 ```bash
 # 确保设置了 PYTHONPATH

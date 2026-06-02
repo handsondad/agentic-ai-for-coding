@@ -7,10 +7,12 @@ import logging
 
 try:
     from .executor import IssuePipeline, PipelineError
+    from .failure_reporting import render_failure_markdown
     from .github_client import GitHubClient
     from .models import GitHubIssue, RuntimeSettings
 except ImportError:
     from executor import IssuePipeline, PipelineError
+    from failure_reporting import render_failure_markdown
     from github_client import GitHubClient
     from models import GitHubIssue, RuntimeSettings
 
@@ -58,7 +60,7 @@ class AutomationService:
                 logger.error("issue=%s 执行失败: %s", issue.number, exc)
                 await self._safe_comment(
                     issue.number,
-                    f"自动执行失败: {exc}\n\n请修复后重新打上 ai-ready 标签。",
+                    render_failure_markdown(step="pipeline", raw_error=str(exc)),
                 )
                 await self._safe_add_labels(issue.number, ["ai-failed"])
                 return
@@ -66,7 +68,7 @@ class AutomationService:
                 logger.exception("issue=%s 执行出现未预期异常: %s", issue.number, exc)
                 await self._safe_comment(
                     issue.number,
-                    f"自动执行异常中断: {exc}\n\n请检查 Token 权限和日志后重试。",
+                    render_failure_markdown(step="unexpected", raw_error=str(exc)),
                 )
                 await self._safe_add_labels(issue.number, ["ai-failed"])
                 return
