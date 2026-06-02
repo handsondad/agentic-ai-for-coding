@@ -1,4 +1,4 @@
-.PHONY: help setup dev test test-unit test-integration lint format build clean
+.PHONY: help setup dev test test-unit test-integration lint format build clean gate gate-quick gate-full
 
 # 默认目标：显示帮助
 help:
@@ -20,6 +20,8 @@ help:
 	@echo "代码质量："
 	@echo "  make lint               运行代码检查（ruff + mypy）"
 	@echo "  make format             自动格式化代码"
+	@echo "  make gate               运行统一质量门禁（quick）"
+	@echo "  make gate-full          运行统一质量门禁（full）"
 	@echo ""
 	@echo "构建："
 	@echo "  make build              构建 Python 包"
@@ -98,6 +100,18 @@ format:
 	ruff format src/ tests/
 	ruff check --fix src/ tests/
 	@echo "✅ 格式化完成"
+
+gate:
+	@echo "🧪 运行统一质量门禁（quick）..."
+	python .github/automation/scripts/quality-gate.py --mode quick
+
+gate-quick:
+	@echo "🧪 运行统一质量门禁（quick）..."
+	python .github/automation/scripts/quality-gate.py --mode quick
+
+gate-full:
+	@echo "🧪 运行统一质量门禁（full）..."
+	python .github/automation/scripts/quality-gate.py --mode full
 
 # ─────────────────────────────────────────────
 # 构建

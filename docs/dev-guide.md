@@ -58,6 +58,12 @@ make test-integration
 # 代码 lint 检查
 make lint
 
+# 统一质量门禁（quick）
+make gate
+
+# 统一质量门禁（full）
+make gate-full
+
 # 自动格式化代码
 make format
 
@@ -142,6 +148,22 @@ async def my_tool(params: MyToolParams) -> dict:
 ```
 
 ## 测试策略
+
+### 统一质量门禁
+
+建议在创建 PR 前执行统一门禁入口，避免遗漏检查项：
+
+```bash
+make gate       # 快速门禁：format/lint/type/unit
+make gate-full  # 完整门禁：在 quick 基础上增加 integration
+```
+
+门禁执行完成后会生成结构化报告：
+
+- `.automation/quality-gate-report.json`
+- `.automation/quality-gate-summary.md`（可直接粘贴到 PR/Issue 评论）
+
+若失败，报告会包含失败步骤、退出码与关键输出摘要，便于 agent 自动回填到 PR/Issue。
 
 ### 测试层次
 
