@@ -1,4 +1,4 @@
-"""调度服务测试。"""
+"""Celery 调度器依赖分层测试。"""
 
 from __future__ import annotations
 
@@ -11,33 +11,42 @@ if str(AUTOMATION_DIR) not in sys.path:
     sys.path.insert(0, str(AUTOMATION_DIR))
 
 models_module = importlib.import_module("models")
-service_module = importlib.import_module("service")
+dispatcher_module = importlib.import_module("celery_dispatcher")
 
 GitHubIssue = models_module.GitHubIssue
-filter_new_candidates = service_module.filter_new_candidates
+build_dependency_levels = dispatcher_module.build_dependency_levels
 
 
-def test_filter_new_candidates_excludes_claimed() -> None:
-    """已占用 issue 不应重复调度。"""
+def test_build_dependency_levels_orders_by_depends_on() -> None:
+    """应按 Depends on 关系进行分层调度。"""
     issues = [
         GitHubIssue(
-            number=1,
-            title="One",
+            number=10,
+            title="Base",
             body="",
             state="open",
-            html_url="https://example.com/1",
+            html_url="https://example.com/10",
             labels=["ai-ready"],
         ),
         GitHubIssue(
-            number=2,
-            title="Two",
-            body="",
+            number=11,
+            title="Child-A",
+            body="Depends on: #10",
             state="open",
-            html_url="https://example.com/2",
+            html_url="https://example.com/11",
+            labels=["ai-ready"],
+        ),
+        GitHubIssue(
+            number=12,
+            title="Child-B",
+            body="Depends on: #10",
+            state="open",
+            html_url="https://example.com/12",
             labels=["ai-ready"],
         ),
     ]
 
-    filtered = filter_new_candidates(issues, claimed={2})
+    levels = build_dependency_levels(issues)
 
-    assert [item.number for item in filtered] == [1]
+    assert [item.number for item in levels[0]] == [10]
+    assert sorted(item.number for item in levels[1]) == [11, 12]

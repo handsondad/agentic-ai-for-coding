@@ -49,9 +49,9 @@ class RuntimeSettings:
     base_branch: str
     metrics_file: Path
     dry_run: bool
-    use_skills: bool
-    skills_file: Path | None
-    skill_commands: dict[str, str]
+    celery_broker_url: str
+    celery_result_backend: str
+    celery_queue: str
 
 
 @dataclass(slots=True)

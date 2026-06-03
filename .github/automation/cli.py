@@ -8,10 +8,10 @@ import logging
 from pathlib import Path
 
 try:
-    from .service import AutomationService
+    from .celery_dispatcher import CeleryDispatchService
     from .workflow import load_runtime_settings
 except ImportError:
-    from service import AutomationService
+    from celery_dispatcher import CeleryDispatchService
     from workflow import load_runtime_settings
 
 
@@ -44,8 +44,8 @@ def main() -> None:
 
     workflow_path = Path(args.workflow).resolve()
     settings = load_runtime_settings(workflow_path)
+    service = CeleryDispatchService(settings)
 
-    service = AutomationService(settings)
     if args.once:
         asyncio.run(service.run_once())
     else:

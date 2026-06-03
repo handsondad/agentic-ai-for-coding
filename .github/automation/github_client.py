@@ -193,8 +193,6 @@ def _normalize_issue(payload: Any) -> GitHubIssue | None:
     html_url = payload.get("html_url")
     body = payload.get("body")
     state = payload.get("state")
-    created_at = payload.get("created_at")
-    updated_at = payload.get("updated_at")
 
     if not isinstance(number, int):
         return None

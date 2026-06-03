@@ -76,7 +76,10 @@ def load_events(event_file: Path) -> list[dict[str, Any]]:
 def build_weekly_snapshot(events: list[dict[str, Any]], period: str = "weekly") -> dict[str, Any]:
     """Aggregate issue execution events into a weekly snapshot."""
     grouped = _group_events_by_issue(events)
-    issue_summaries = [_summarize_issue(issue_number, attempts) for issue_number, attempts in grouped.items()]
+    issue_summaries = [
+        _summarize_issue(issue_number, attempts)
+        for issue_number, attempts in grouped.items()
+    ]
 
     total_issues = len(issue_summaries)
     success_count = sum(1 for item in issue_summaries if item["success"])
@@ -84,9 +87,15 @@ def build_weekly_snapshot(events: list[dict[str, Any]], period: str = "weekly") 
     rework_count = sum(1 for item in issue_summaries if item["attempt_count"] > 1)
     gate_pass_count = sum(1 for item in issue_summaries if item["quality_gate_passed"])
 
-    lead_times = [item["lead_time_ms"] for item in issue_summaries if item["lead_time_ms"] is not None]
+    lead_times = [
+        item["lead_time_ms"]
+        for item in issue_summaries
+        if item["lead_time_ms"] is not None
+    ]
     failure_counter = Counter(
-        item["failure_category"] for item in issue_summaries if not item["success"] and item["failure_category"]
+        item["failure_category"]
+        for item in issue_summaries
+        if not item["success"] and item["failure_category"]
     )
 
     snapshot: dict[str, Any] = {
@@ -175,7 +184,18 @@ def render_weekly_report(
     else:
         lines.append("- no blockers recorded")
 
-    lines.extend(["", "## Notes", "", "- Data source: `.automation/execution-metrics.jsonl`", "- Lead time is measured from GitHub issue creation to automation completion when timestamps are available."])
+    lines.extend(
+        [
+            "",
+            "## Notes",
+            "",
+            "- Data source: `.automation/execution-metrics.jsonl`",
+            (
+                "- Lead time is measured from GitHub issue creation to automation completion "
+                "when timestamps are available."
+            ),
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -289,7 +309,8 @@ def _parse_datetime(value: Any) -> datetime | None:
 
 def _event_sort_key(event: dict[str, Any]) -> tuple[str, int]:
     completed_at = str(event.get("completed_at", ""))
-    duration_ms = int(event.get("duration_ms", 0)) if isinstance(event.get("duration_ms"), int) else 0
+    duration_raw = event.get("duration_ms", 0)
+    duration_ms = int(duration_raw) if isinstance(duration_raw, int) else 0
     return completed_at, duration_ms
 
 

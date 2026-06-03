@@ -67,9 +67,6 @@ make gate-full
 # PR 描述模板完整性检查（需先准备 .automation/pr-body.md）
 make pr-check
 
-# 离线评估集回放与策略对比
-make eval-replay
-
 # 每周在线指标快照
 make metrics-snapshot
 
@@ -183,16 +180,6 @@ python .github/automation/scripts/check-pr-template.py --body-file .automation/p
 ```
 
 CI 也会在 pull_request 事件中执行同一校验脚本（读取 `GITHUB_EVENT_PATH`），缺少必填章节或保留模板注释将直接失败。
-
-### 离线评估集
-
-首批离线评估数据位于 `.github/automation/evals/dataset.json`，脚本会按 `replays` 中的策略键聚合成功率、门禁通过率、平均耗时与失败分类分布。
-
-```bash
-python .github/automation/scripts/replay-eval.py --dataset .github/automation/evals/dataset.json --strategy candidate --baseline-strategy baseline
-```
-
-如果需要和历史评估结果对比，可以追加 `--compare-to <previous-report.json>`。脚本会同时输出 JSON 报告与 Markdown 摘要，便于纳入周报或 PR 评论。
 
 ### 在线指标与周报
 

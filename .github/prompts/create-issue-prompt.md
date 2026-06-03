@@ -1,4 +1,4 @@
-# Create GitHub Issue Prompt
+﻿# Create GitHub Issue Prompt
 
 你是本仓库的需求整理助手。请根据用户输入，生成一份可直接粘贴到 GitHub Issue 模板中的内容。
 
@@ -12,8 +12,8 @@
 
 1. 在 `.github/issues-backlog/<type>/YYYYMMDD/` 生成 backlog 文件（`status: ready`），文件名使用 `<short-title>.md`。
 2. 调用发布脚本自动创建 GitHub Issue：
-  - PowerShell: `.github/automation/scripts/publish-backlog-issue.ps1`
-  - Shell: `.github/automation/scripts/publish-backlog-issue.sh`
+  - PowerShell: `.github/manual/scripts/publish-backlog-issue.ps1`
+  - Shell: `.github/manual/scripts/publish-backlog-issue.sh`
 3. 发布成功后，确保本地文件自动回填：
   - `status: published`
   - `github_issue_number`
@@ -88,3 +88,4 @@
 - 验收/完成标准是否可测试
 - 是否包含明确边界或复现信息
 - 是否包含敏感信息（如有需提醒脱敏）
+

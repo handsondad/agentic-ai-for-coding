@@ -62,7 +62,7 @@ body:
       description: 问题发生的环境
       placeholder: |
         - 操作系统：Ubuntu 22.04 / macOS 14
-        - Python 版本：3.11.x
+        - Python 版本：3.12.x
         - 应用版本/提交：v1.2.0 或 commit SHA
         - 相关配置（脱敏）：
     validations:

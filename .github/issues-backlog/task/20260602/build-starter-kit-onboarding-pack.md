@@ -1,14 +1,14 @@
----
+﻿---
 title: 'chore: 构建 Starter Kit 接入清单与模板化配置'
 type: task
-status: ready
+status: published
 labels:
 - task
 - ai-ready
 - platform
 priority: P2
 assignee: ''
-milestone: 'ai-coding-infra-phase3'
+milestone: ai-coding-infra-phase3
 acceptance_criteria:
 - 提供新项目 30 分钟接入清单
 - 抽象关键配置模板（WORKFLOW、PR 模板、issue backlog 约定）
@@ -20,6 +20,8 @@ related_docs:
 - README.md
 - WORKFLOW.md
 - .github/copilot-instructions.md
+github_issue_number: '16'
+github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/16
 ---
 
 ## 背景与动机
@@ -47,10 +49,11 @@ related_docs:
 
 ```bash
 # 新仓库初始化后验证
-python .github/automation/scripts/prepare-single-issue.py --issue-file .github/issues-backlog/task/YYYYMMDD/sample-task.md
+python .github/manual/scripts/prepare-single-issue.py --issue-file .github/issues-backlog/task/YYYYMMDD/sample-task.md
 ```
 
 ## 风险与回滚
 
 - 风险：模板过多导致接入复杂
 - 回滚：拆分为“必选模板 + 可选增强模板”，先交付必选最小集合
+

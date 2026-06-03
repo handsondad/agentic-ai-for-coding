@@ -36,6 +36,11 @@ agent:
   max_turns: 30                  # 每个 Issue 最多 30 轮对话
   max_retry_backoff_ms: 300000   # 失败后最长等待 5 分钟重试
 
+celery:
+  broker_url: redis://localhost:6379/0
+  result_backend: redis://localhost:6379/1
+  queue: automation_issues
+
 codex:
   command: codex app-server
   approval_policy: auto-edit     # 自动批准文件编辑操作

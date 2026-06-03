@@ -1,4 +1,4 @@
-# GitHub Copilot 编码规范
+﻿# GitHub Copilot 编码规范
 
 本文档定义了项目的编码规范，GitHub Copilot 和 Copilot Coding Agent 在生成代码时必须遵循这些规范。
 
@@ -218,8 +218,8 @@ Closes #42
     - `github_issue_number`
     - `github_issue_url`
 4. **优先使用发布脚本**：
-    - PowerShell: `.github/automation/scripts/publish-backlog-issue.ps1`
-    - Shell: `.github/automation/scripts/publish-backlog-issue.sh`
+    - PowerShell: `.github/manual/scripts/publish-backlog-issue.ps1`
+    - Shell: `.github/manual/scripts/publish-backlog-issue.sh`
 5. **最终交付必须双链路可追踪**：回复中同时给出 GitHub Issue URL 与本地 backlog 文件路径。
 
 ## 禁止事项
@@ -230,3 +230,4 @@ Closes #42
 - ❌ 不绕过类型检查（避免过多使用 `Any` 和 `# type: ignore`）
 - ❌ 不在生产代码中使用 `print()` 调试
 - ❌ 不创建超过 500 行的单文件（应拆分）
+

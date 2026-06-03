@@ -1,7 +1,7 @@
 ---
 title: 'chore: 新增 PR 模板完整性校验器'
 type: task
-status: ready
+status: published
 labels:
 - task
 - ai-ready
@@ -19,6 +19,8 @@ related_docs:
 - .github/pull_request_template.md
 - .github/workflows/ci.yml
 - docs/ai-coding-infra-executable-blueprint.md
+github_issue_number: '14'
+github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/14
 ---
 
 ## 背景与动机

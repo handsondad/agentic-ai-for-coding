@@ -1,4 +1,4 @@
-# Automation Runner E2E 试跑记录
+﻿# Automation Runner E2E 试跑记录
 
 ## 背景
 
@@ -21,13 +21,13 @@
 
 为降低单 issue 工作流的启动门槛，本次补充了以下兼容行为：
 
-1. `.github/automation/scripts/prepare-single-issue.py`
+1. `.github/manual/scripts/prepare-single-issue.py`
    - 在 Windows 上自动回退读取 User 级别环境变量：
      - `GITHUB_TOKEN`
      - `GITHUB_REPOSITORY`
      - `AUTOMATION_CA_BUNDLE`
      - `AUTOMATION_TLS_NO_VERIFY`
-2. `.github/automation/scripts/prepare-single-issue.ps1`
+2. `.github/manual/scripts/prepare-single-issue.ps1`
    - 同样增加 User 级别环境变量回退
    - 修复 PowerShell 5.1 动态读取环境变量时的语法兼容问题
 3. `.github/automation/scripts/workspace-hooks.py`

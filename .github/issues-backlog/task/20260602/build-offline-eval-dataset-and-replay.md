@@ -1,7 +1,7 @@
 ---
 title: 'chore: 建设离线评估集与回放脚本'
 type: task
-status: ready
+status: published
 labels:
 - task
 - ai-ready
@@ -19,6 +19,8 @@ related_docs:
 - docs/ai-coding-infra-executable-blueprint.md
 - .github/automation/
 - docs/dev-guide.md
+github_issue_number: '15'
+github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/15
 ---
 
 ## 背景与动机

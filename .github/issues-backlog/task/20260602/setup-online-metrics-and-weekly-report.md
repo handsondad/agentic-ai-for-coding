@@ -1,14 +1,14 @@
 ---
 title: 'chore: 建立在线指标采集与周报模板'
 type: task
-status: ready
+status: published
 labels:
 - task
 - ai-ready
 - observability
 priority: P1
 assignee: ''
-milestone: 'ai-coding-infra-phase2'
+milestone: ai-coding-infra-phase2
 acceptance_criteria:
 - 定义并采集核心 KPI（成功率、一次通过率、Lead Time、返工率、门禁通过率）
 - 输出每周指标快照文件
@@ -19,6 +19,8 @@ related_docs:
 - docs/ai-coding-infra-executable-blueprint.md
 - .github/automation/service.py
 - docs/dev-guide.md
+github_issue_number: '18'
+github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/18
 ---
 
 ## 背景与动机

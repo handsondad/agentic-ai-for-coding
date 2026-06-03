@@ -12,7 +12,7 @@ def _load_module() -> object:
     script_path = (
         Path(__file__).resolve().parents[2]
         / ".github"
-        / "automation"
+        / "manual"
         / "scripts"
         / "prepare-single-issue.py"
     )

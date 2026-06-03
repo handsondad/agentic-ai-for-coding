@@ -1,7 +1,7 @@
 ---
 title: 'chore: 新增统一质量门禁执行器（lint/type/test/checklist）'
 type: task
-status: ready
+status: published
 labels:
 - task
 - ai-ready
@@ -19,6 +19,8 @@ related_docs:
 - docs/ai-coding-infra-executable-blueprint.md
 - WORKFLOW.md
 - README.md
+github_issue_number: '17'
+github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/17
 ---
 
 ## 背景与动机

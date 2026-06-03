@@ -77,7 +77,6 @@ PR 描述必须完整填写模板内容，尤其是：
 - `make gate`
 - `make gate-full`
 - `make pr-check`
-- `make eval-replay`
 - `make metrics-snapshot`
 
 ## 8. 关键文件索引

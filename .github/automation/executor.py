@@ -153,20 +153,26 @@ class IssuePipeline:
 
     async def _run_agent(self, issue: GitHubIssue, worktree_path: Path) -> None:
         prompt_path = worktree_path / ".automation" / "issue-prompt.md"
-        skill_context = self._build_skill_context(
-            issue=issue,
-            worktree_path=worktree_path,
-            branch_name="",
-            prompt_path=prompt_path,
-        )
+        if not self._settings.agent_command:
+            raise PipelineError("未配置 AUTOMATION_AGENT_COMMAND，无法自动执行 AI 任务")
 
-        skill_command = self._resolve_skill_command("run_agent", skill_context)
-        if skill_command is not None:
-            command = skill_command
-        else:
-            if not self._settings.agent_command:
-                raise PipelineError("未配置 AUTOMATION_AGENT_COMMAND，无法自动执行 AI 任务")
-            command = self._render_template(self._settings.agent_command, skill_context)
+        command = self._render_template(
+            self._settings.agent_command,
+            {
+                "issue_number": str(issue.number),
+                "issue_title": issue.title,
+                "issue_identifier": issue.identifier,
+                "issue_url": issue.html_url,
+                "issue_body": issue.body,
+                "workspace": str(worktree_path),
+                "workflow": str(self._settings.workflow_path),
+                "prompt": str(prompt_path),
+                "branch_name": "",
+                "base_branch": self._settings.base_branch,
+                "agent_command": self._settings.agent_command,
+                "quality_commands": " ; ".join(self._settings.quality_commands),
+            },
+        )
 
         await self._run_command(command, cwd=worktree_path)
 
@@ -177,27 +183,6 @@ class IssuePipeline:
         branch_name: str,
     ) -> list[QualityGateResult]:
         results: list[QualityGateResult] = []
-
-        skill_context = self._build_skill_context(
-            issue=issue,
-            worktree_path=worktree_path,
-            branch_name=branch_name,
-            prompt_path=worktree_path / ".automation" / "issue-prompt.md",
-        )
-        skill_command = self._resolve_skill_command("quality_gate", skill_context)
-
-        if skill_command is not None:
-            result = await self._run_command(skill_command, cwd=worktree_path, check=False)
-            results.append(
-                QualityGateResult(
-                    command=skill_command,
-                    exit_code=result.exit_code,
-                    output=result.stdout,
-                )
-            )
-            if result.exit_code != 0:
-                raise PipelineError(f"质量检查失败: {skill_command}")
-            return results
 
         for command in self._settings.quality_commands:
             result = await self._run_command(command, cwd=worktree_path, check=False)
@@ -223,17 +208,6 @@ class IssuePipeline:
         worktree_path: Path,
         branch_name: str,
     ) -> None:
-        skill_context = self._build_skill_context(
-            issue=issue,
-            worktree_path=worktree_path,
-            branch_name=branch_name,
-            prompt_path=worktree_path / ".automation" / "issue-prompt.md",
-        )
-        skill_command = self._resolve_skill_command("commit_and_push", skill_context)
-        if skill_command is not None:
-            await self._run_command(skill_command, cwd=worktree_path)
-            return
-
         await self._run_command("git add -A", cwd=worktree_path)
 
         check = await self._run_command("git diff --cached --quiet", cwd=worktree_path, check=False)
@@ -253,42 +227,6 @@ class IssuePipeline:
             return
 
         await self._run_command(f"git push -u origin {branch_name}", cwd=worktree_path)
-
-    def _build_skill_context(
-        self,
-        issue: GitHubIssue,
-        worktree_path: Path,
-        branch_name: str,
-        prompt_path: Path,
-    ) -> dict[str, str]:
-        quality_joined = " ; ".join(self._settings.quality_commands)
-        return {
-            "issue_number": str(issue.number),
-            "issue_title": issue.title,
-            "issue_identifier": issue.identifier,
-            "issue_url": issue.html_url,
-            "issue_body": issue.body,
-            "workspace": str(worktree_path),
-            "workflow": str(self._settings.workflow_path),
-            "prompt": str(prompt_path),
-            "branch_name": branch_name,
-            "base_branch": self._settings.base_branch,
-            "agent_command": self._settings.agent_command or "",
-            "quality_commands": quality_joined,
-        }
-
-    def _resolve_skill_command(self, step_name: str, context: dict[str, str]) -> str | None:
-        if not self._settings.use_skills:
-            return None
-
-        template = self._settings.skill_commands.get(step_name)
-        if template is None:
-            return None
-
-        rendered = self._render_template(template, context).strip()
-        if not rendered:
-            return None
-        return rendered
 
     def _render_template(self, template: str, context: dict[str, str]) -> str:
         rendered = template

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 import sys
 from pathlib import Path
 
@@ -61,10 +60,22 @@ def _event(
 def test_build_weekly_snapshot_aggregates_kpis() -> None:
     module = _load_module()
     events = [
-        _event(1, success=False, pr_created=False, quality_gate_passed=False, failure_category="environment_blocker"),
+        _event(
+            1,
+            success=False,
+            pr_created=False,
+            quality_gate_passed=False,
+            failure_category="environment_blocker",
+        ),
         _event(1, success=True, pr_created=True, quality_gate_passed=True),
         _event(2, success=True, pr_created=True, quality_gate_passed=True),
-        _event(3, success=False, pr_created=False, quality_gate_passed=False, failure_category="code_defect"),
+        _event(
+            3,
+            success=False,
+            pr_created=False,
+            quality_gate_passed=False,
+            failure_category="code_defect",
+        ),
     ]
 
     snapshot = module.build_weekly_snapshot(events)

@@ -96,87 +96,6 @@ prompt
         load_runtime_settings(workflow)
 
 
-def test_load_runtime_settings_loads_skill_commands(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """应从 skills 文件读取步骤命令。"""
-    workflow = tmp_path / "WORKFLOW.md"
-    workflow.write_text(
-        """---
-tracker:
-  kind: github
-  api_key: $GITHUB_TOKEN
-  repo: $GITHUB_REPOSITORY
----
-prompt
-""",
-        encoding="utf-8",
-    )
-
-    skills_file = tmp_path / "skills.yaml"
-    skills_file.write_text(
-        """skills:
-  run_agent:
-    command: "python run_agent.py --issue {issue_number}"
-  quality_gate:
-    command: "make lint ; make test"
-""",
-        encoding="utf-8",
-    )
-
-    monkeypatch.setenv("GITHUB_TOKEN", "ghp_test_value")
-    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
-    monkeypatch.setenv("AUTOMATION_REPO_ROOT", str(tmp_path))
-    monkeypatch.setenv("AUTOMATION_SKILLS_FILE", str(skills_file))
-    monkeypatch.setenv("AUTOMATION_USE_SKILLS", "true")
-
-    settings = load_runtime_settings(workflow)
-
-    assert settings.use_skills is True
-    assert settings.skill_commands["run_agent"] == "python run_agent.py --issue {issue_number}"
-    assert settings.skill_commands["quality_gate"] == "make lint ; make test"
-
-
-def test_load_runtime_settings_disables_skills_with_env(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """禁用 skills 时应忽略 skills 文件。"""
-    workflow = tmp_path / "WORKFLOW.md"
-    workflow.write_text(
-        """---
-tracker:
-  kind: github
-  api_key: $GITHUB_TOKEN
-  repo: $GITHUB_REPOSITORY
----
-prompt
-""",
-        encoding="utf-8",
-    )
-
-    skills_file = tmp_path / "skills.yaml"
-    skills_file.write_text(
-        """skills:
-  run_agent:
-    command: "python run_agent.py"
-""",
-        encoding="utf-8",
-    )
-
-    monkeypatch.setenv("GITHUB_TOKEN", "ghp_test_value")
-    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
-    monkeypatch.setenv("AUTOMATION_REPO_ROOT", str(tmp_path))
-    monkeypatch.setenv("AUTOMATION_SKILLS_FILE", str(skills_file))
-    monkeypatch.setenv("AUTOMATION_USE_SKILLS", "false")
-
-    settings = load_runtime_settings(workflow)
-
-    assert settings.use_skills is False
-    assert settings.skill_commands == {}
-
-
 def test_load_runtime_settings_renders_hook_templates(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -210,3 +129,35 @@ prompt
     assert settings.hooks.before_run == (
         f'python "{expected_repo_root}/tool.py" before-run --base-branch "release"'
     )
+
+
+def test_load_runtime_settings_reads_celery_block(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """应正确读取 celery 配置并设置默认调度模式。"""
+    workflow = tmp_path / "WORKFLOW.md"
+    workflow.write_text(
+        """---
+tracker:
+  kind: github
+  api_key: $GITHUB_TOKEN
+  repo: $GITHUB_REPOSITORY
+celery:
+  broker_url: redis://localhost:6380/0
+  result_backend: redis://localhost:6380/1
+  queue: issue_jobs
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("GITHUB_TOKEN", "ghp_test_value")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
+
+    settings = load_runtime_settings(workflow)
+
+    assert settings.celery_broker_url == "redis://localhost:6380/0"
+    assert settings.celery_result_backend == "redis://localhost:6380/1"
+    assert settings.celery_queue == "issue_jobs"

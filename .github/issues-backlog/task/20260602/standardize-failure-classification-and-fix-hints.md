@@ -1,14 +1,14 @@
 ---
 title: 'chore: 标准化失败分类与修复建议输出'
 type: task
-status: ready
+status: published
 labels:
 - task
 - ai-ready
 - infra
 priority: P1
 assignee: ''
-milestone: 'ai-coding-infra-mvp'
+milestone: ai-coding-infra-mvp
 acceptance_criteria:
 - 定义统一失败分类（需求缺口/代码缺陷/环境阻塞/外部依赖）
 - 每次失败输出必须包含失败步骤、关键错误、下一步建议
@@ -20,6 +20,8 @@ related_docs:
 - .github/copilot-instructions.md
 - .github/pull_request_template.md
 - .github/automation/service.py
+github_issue_number: '19'
+github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/19
 ---
 
 ## 背景与动机

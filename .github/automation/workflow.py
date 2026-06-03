@@ -30,6 +30,7 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     agent = _get_map(front_matter, "agent", required=False)
     workspace = _get_map(front_matter, "workspace", required=False)
     hooks_map = _get_map(front_matter, "hooks", required=False)
+    celery_map = _get_map(front_matter, "celery", required=False)
 
     token = _resolve_env_like(_required_str(tracker, "api_key", "tracker.api_key"))
     repo_raw = _resolve_env_like(_required_str(tracker, "repo", "tracker.repo"))
@@ -53,9 +54,11 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     )
     agent_command = _opt_str(os.getenv("AUTOMATION_AGENT_COMMAND"))
     base_branch = os.getenv("GITHUB_BASE_BRANCH", "main").strip() or "main"
-    metrics_file_raw = os.getenv("AUTOMATION_METRICS_FILE", ".automation/execution-metrics.jsonl").strip()
+    metrics_file_raw = os.getenv(
+        "AUTOMATION_METRICS_FILE",
+        ".automation/execution-metrics.jsonl",
+    ).strip()
     dry_run = _parse_bool(os.getenv("AUTOMATION_DRY_RUN", "false"))
-    use_skills = _parse_bool(os.getenv("AUTOMATION_USE_SKILLS", "true"))
 
     hooks = WorkflowHooks(
         after_create=_render_hook_template(hooks_map.get("after_create"), repo_root, base_branch),
@@ -63,12 +66,20 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
         after_run=_render_hook_template(hooks_map.get("after_run"), repo_root, base_branch),
     )
 
-    skills_file_raw = os.getenv(
-        "AUTOMATION_SKILLS_FILE",
-        ".github/automation/skills/skills.yaml",
-    ).strip()
-    skills_file = (repo_root / skills_file_raw).resolve()
-    skill_commands = _load_skill_commands(skills_file, enabled=use_skills)
+    celery_broker_url = _opt_str(os.getenv("AUTOMATION_CELERY_BROKER_URL"))
+    if not celery_broker_url:
+        raw_broker = str(celery_map.get("broker_url", "redis://localhost:6379/0"))
+        celery_broker_url = _resolve_env_like(raw_broker)
+
+    celery_result_backend = _opt_str(os.getenv("AUTOMATION_CELERY_RESULT_BACKEND"))
+    if not celery_result_backend:
+        raw_backend = str(celery_map.get("result_backend", "redis://localhost:6379/1"))
+        celery_result_backend = _resolve_env_like(raw_backend)
+
+    celery_queue = _opt_str(os.getenv("AUTOMATION_CELERY_QUEUE"))
+    if not celery_queue:
+        raw_queue = str(celery_map.get("queue", "automation_issues"))
+        celery_queue = _resolve_env_like(raw_queue)
 
     return RuntimeSettings(
         github_token=token,
@@ -87,9 +98,9 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
         base_branch=base_branch,
         metrics_file=(repo_root / metrics_file_raw).resolve(),
         dry_run=dry_run,
-        use_skills=use_skills,
-        skills_file=skills_file if use_skills else None,
-        skill_commands=skill_commands,
+        celery_broker_url=celery_broker_url,
+        celery_result_backend=celery_result_backend,
+        celery_queue=celery_queue,
     )
 
 
@@ -191,43 +202,3 @@ def _render_hook_template(raw: Any, repo_root: Path, base_branch: str) -> str | 
         value.replace("{{ repo_root }}", repo_root.as_posix())
         .replace("{{ base_branch }}", base_branch)
     )
-
-
-def _load_skill_commands(skills_file: Path, enabled: bool) -> dict[str, str]:
-    if not enabled:
-        return {}
-    if not skills_file.exists():
-        return {}
-
-    try:
-        parsed = yaml.safe_load(skills_file.read_text(encoding="utf-8"))
-    except yaml.YAMLError as exc:
-        raise WorkflowParseError(f"skills 文件 YAML 解析失败: {exc}") from exc
-
-    if parsed is None:
-        return {}
-    if not isinstance(parsed, dict):
-        raise WorkflowParseError("skills 文件顶层必须是对象")
-
-    skills_node = parsed.get("skills")
-    if skills_node is None:
-        return {}
-    if not isinstance(skills_node, dict):
-        raise WorkflowParseError("skills 字段必须是对象")
-
-    commands: dict[str, str] = {}
-    for step_name, config in skills_node.items():
-        if not isinstance(step_name, str):
-            continue
-        if not isinstance(config, dict):
-            continue
-
-        command = config.get("command")
-        if not isinstance(command, str):
-            continue
-
-        stripped = command.strip()
-        if stripped:
-            commands[step_name.strip().lower()] = stripped
-
-    return commands

@@ -34,18 +34,13 @@ $runner = Join-Path $scriptDir "prepare-single-issue.py"
 
 Use-UserEnvFallback -Name "GITHUB_TOKEN"
 Use-UserEnvFallback -Name "GITHUB_REPOSITORY"
-Use-UserEnvFallback -Name "AUTOMATION_CA_BUNDLE"
-Use-UserEnvFallback -Name "AUTOMATION_TLS_NO_VERIFY"
 
-$args = @($runner, "--workflow", $Workflow)
 if ($IssueNumber -gt 0) {
-    $args += @("--issue-number", $IssueNumber)
+    & $PythonExe $runner "--workflow" $Workflow "--issue-number" $IssueNumber
 }
-if ($IssueFile) {
-    $args += @("--issue-file", $IssueFile)
+else {
+    & $PythonExe $runner "--workflow" $Workflow "--issue-file" $IssueFile
 }
-
-& $PythonExe $args
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

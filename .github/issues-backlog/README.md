@@ -1,4 +1,4 @@
-# Issues Backlog 管理约定
+﻿# Issues Backlog 管理约定
 
 该目录用于存放“尚未发布到 GitHub 的 Issue 草稿”，作为 AI/人工协作的统一输入池。
 
@@ -61,14 +61,14 @@
 推荐命令（Windows PowerShell）：
 
 ```powershell
-pwsh .github/automation/scripts/publish-backlog-issue.ps1 \
+pwsh .github/manual/scripts/publish-backlog-issue.ps1 \
   .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
 ```
 
 推荐命令（Linux/macOS）：
 
 ```bash
-sh .github/automation/scripts/publish-backlog-issue.sh \
+sh .github/manual/scripts/publish-backlog-issue.sh \
   .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
 ```
 
@@ -104,3 +104,4 @@ sh .github/automation/scripts/publish-backlog-issue.sh \
 - 每周清理过期 `draft`
 - 每个迭代结束时核对 `published` 与 GitHub Issue 实际状态
 - 发现不一致时立即回写修正
+

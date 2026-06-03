@@ -18,14 +18,13 @@ ai_context: 该任务用于验证本仓库 .github/automation 下的本地自动
 related_docs:
 - WORKFLOW.md
 - README.md
-- .github/automation/skills/README.md
 github_issue_number: '7'
 github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/7
 ---
 
 ## 背景与动机
 
-当前仓库已经具备本地自动化执行框架，包括：Issue 轮询、worktree 创建、prompt 渲染、skills、质量门禁、提交与 PR 流程。
+当前仓库已经具备本地自动化执行框架，包括：Issue 轮询、worktree 创建、prompt 渲染、质量门禁、提交与 PR 流程。
 
 在团队正式使用前，需要先通过一条真实 GitHub Issue 验证这条链路能否跑通，并明确最小可用配置、已知阻塞点和后续补强项。
 
@@ -35,7 +34,7 @@ github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/7
 - 使用一条真实的 GitHub Issue 触发本地自动化流程
 - 验证 `ai-ready` 标签任务是否能被正确发现
 - 验证 `.github/automation/` 下脚本和配置能否驱动完整执行链路
-- 验证 worktree、prompt、skills、quality gate、commit/push、PR 创建等关键步骤
+- 验证 worktree、prompt、quality gate、commit/push、PR 创建等关键步骤
 - 记录试跑结果、日志、阻塞点与改进建议
 
 ### 不在范围
@@ -61,7 +60,6 @@ github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/7
 ## 关联文档
 - WORKFLOW.md
 - README.md
-- .github/automation/skills/README.md
 
 ---
 
