@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic AI for Coding 培训手册</title>
+  <style>
+    :root {
+      --bg: #f6f4ee;
+      --paper: #fffdf8;
+      --ink: #1e1f1d;
+      --muted: #5e625b;
+      --line: #d9d3c6;
+      --brand: #0f5a47;
+      --brand-soft: #dceee8;
+      --accent: #c46d26;
+      --accent-soft: #ffe9d6;
+      --code-bg: #1f2328;
+      --code-ink: #edf2f7;
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+      --space: clamp(14px, 2vw, 24px);
+      --maxw: 920px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 700px at 90% -10%, #f3d7be 0%, rgba(243, 215, 190, 0) 60%),
+        radial-gradient(900px 520px at -10% 20%, #d7e9e2 0%, rgba(215, 233, 226, 0) 55%),
+        var(--bg);
+      line-height: 1.76;
+      scroll-behavior: smooth;
+    }
+
+    .wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: clamp(22px, 4vw, 44px) var(--space) 64px;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .side-menu {
+      position: sticky;
+      top: 16px;
+    }
+
+    .content {
+      max-width: var(--maxw);
+      width: 100%;
+      justify-self: end;
+    }
+
+    header {
+      background: linear-gradient(140deg, #114a3c, #2b6f5a 60%, #468c76);
+      color: #f8faf8;
+      border-radius: 24px;
+      padding: clamp(24px, 5vw, 44px);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -42% auto;
+      width: min(70vw, 460px);
+      aspect-ratio: 1;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+      z-index: -1;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0 0 10px;
+      line-height: 1.25;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 4.4vw, 3rem);
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: rgba(248, 250, 248, 0.92);
+      max-width: 68ch;
+      font-size: clamp(0.98rem, 2.1vw, 1.15rem);
+    }
+
+    .meta {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.86rem;
+      color: rgba(250, 253, 251, 0.96);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .pill a {
+      color: #f5fffa;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .pill a:hover {
+      color: #ffffff;
+    }
+
+    .toc {
+      margin: 0;
+      border: 1px solid #c7d6cf;
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.95);
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .toc-title {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      letter-spacing: 0.2px;
+      color: #134b3c;
+      font-weight: 700;
+    }
+
+    .toc-list {
+      margin: 0;
+      padding: 0 0 0 20px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .toc-list li {
+      margin: 0;
+      color: #2b4f43;
+    }
+
+    .toc-list a {
+      color: #1d4b3d;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(29, 75, 61, 0.3);
+    }
+
+    .toc-list a:hover {
+      color: #0f5a47;
+      border-bottom-color: rgba(15, 90, 71, 0.58);
+    }
+
+    section {
+      margin-top: 22px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3vw, 28px);
+    }
+
+    section h2 {
+      margin-bottom: 14px;
+      font-size: clamp(1.22rem, 2.7vw, 1.7rem);
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul {
+      margin: 8px 0 2px 20px;
+      padding: 0;
+    }
+
+    li {
+      margin: 9px 0;
+    }
+
+    strong {
+      color: #114f3e;
+      font-weight: 700;
+      background: linear-gradient(transparent 54%, #d9eee5 54%);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      grid-column: span 12;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fffdf8;
+    }
+
+    .card h3 {
+      margin-bottom: 6px;
+      font-size: 1.05rem;
+    }
+
+    .em {
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--brand-soft);
+      border: 1px solid #c9e2d9;
+      color: #134d3e;
+      font-weight: 600;
+    }
+
+    .warn {
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--accent-soft);
+      border: 1px solid #f2cea9;
+      color: #945013;
+      font-weight: 600;
+    }
+
+    .flow {
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px dashed #90b2a5;
+      border-radius: 10px;
+      background: #f4faf7;
+      font-weight: 600;
+      color: #225446;
+      overflow-wrap: anywhere;
+    }
+
+    .hero-image {
+      margin: 12px 0 14px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #bfcfc7;
+      box-shadow: var(--shadow);
+      background: #e8edea;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .hero-caption {
+      margin: 0;
+      padding: 9px 12px;
+      color: #4f5a55;
+      font-size: 0.9rem;
+      border-top: 1px solid #cfd8d3;
+      background: #f1f6f3;
+    }
+
+    .prompt-callout {
+      margin-top: 2px;
+      padding: 11px 13px;
+      border-left: 4px solid #2f7a63;
+      border-radius: 8px;
+      background: #edf7f2;
+    }
+
+    .key-takeaway {
+      margin-top: 16px;
+      padding: 11px 13px;
+      border-left: 4px solid #c46d26;
+      border-radius: 8px;
+      background: #fff2e5;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      padding: 10px;
+    }
+
+    th {
+      background: #f3f5ee;
+      width: 30%;
+    }
+
+    pre {
+      margin: 10px 0;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      padding: 12px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      border: 1px solid #313741;
+    }
+
+    code {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+    }
+
+    .footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    @media (min-width: 760px) {
+      .half {
+        grid-column: span 6;
+      }
+
+      .third {
+        grid-column: span 4;
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .side-menu {
+        position: static;
+      }
+
+      .content {
+        justify-self: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="page">
+      <aside class="side-menu">
+        <nav class="toc" aria-label="目录">
+        <p class="toc-title">目录</p>
+        <ol class="toc-list">
+          <li><a href="#intro">引子：神秘屋</a></li>
+          <li><a href="#sdd">SDD：规范驱动开发</a></li>
+          <li><a href="#what">Agentic AI for Coding</a></li>
+          <li><a href="#github">GitHub 生态</a></li>
+          <li><a href="#repo-map">本仓库落地映射</a></li>
+          <li><a href="#practice">实战经验</a></li>
+          <li><a href="#summary">总结</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <main class="content">
+        <header>
+          <h1>Agentic AI for Coding 培训手册</h1>
+          <p class="subtitle">从 Vibe Coding 到可落地的 AI 工程协作闭环。本文档基于仓库现状整理，重点讲清楚如何把 AI 写码能力接入团队可验证、可审计、可交付的软件流程。</p>
+          <div class="meta">
+            <span class="pill">适用对象：研发团队 / 技术负责人 / AI 推进者</span>
+            <span class="pill">Repo 地址：<a href="https://github.com/handsondad/agentic-ai-for-coding" target="_blank" rel="noopener noreferrer">https://github.com/handsondad/agentic-ai-for-coding</a></span>
+            <span class="pill">培训讲解人：梁秀钦</span>
+            <span class="pill">更新日期：2026-06-03</span>
+          </div>
+        </header>
+
+    <section id="intro">
+      <h2>1) 引子：神秘屋</h2>
+      <figure class="hero-image">
+        <img src="mystery-house.png" alt="神秘屋开场图">
+        <figcaption class="hero-caption">开场意象：不断扩建、风格混杂、局部反复重建的“神秘屋”。</figcaption>
+      </figure>
+      <p>“神秘屋”是一幢真实存在于美国加州的大宅，由一位 19 世纪末的富有老太太长期亲自设计与监工建造。她极其热爱建筑，但从不做整体规划，想到哪里就建到哪里。</p>
+      <p>于是，房间 A 是维多利亚式，房间 B 是罗马式，房间 C 是哥特式；不满意就拆掉重建，某些房间甚至被拆了 16 次。为了省事，一些窗户和门在改造时直接被砌进墙里。最终，这座房子扩展到约 160 个房间、2000 扇门、10000 扇窗户，像迷宫一样庞大却难以理解。</p>
+      <p class="prompt-callout"><strong>给大家一个提示问题：</strong>听到这里，你们会不会觉得，这其实就很像现在流行的 Vibe Coding？</p>
+      <p>今天，很多 AI 开发过程也在复制这条路径：需求由个人即时提出，缺少评审；代码持续堆叠，缺少测试；功能快速扩展，但结构与文档逐步失控。</p>
+      <p>这种过程很有快感，也很容易让人沉浸其中。但当项目进入协作、维护、交付阶段，团队会发现自己正在维护一座软件“神秘屋”。</p>
+      <div class="flow">神秘屋式开发：想法即需求 → 立刻生成代码 → 持续补丁叠加 → 规模扩张 → 维护成本陡增</div>
+      <p class="key-takeaway">这正是本培训要解决的问题：从“个体灵感驱动”切换到“规范与验证驱动”，让 AI 开发从好玩走向可持续。</p>
+    </section>
+
+    <section id="sdd">
+      <h2>2) SDD：规范驱动开发（Specification-Driven Development）</h2>
+      <p>SDD 的核心不是“让 AI 写得更快”，而是把规范升级为研发主驱动：先定义做什么，再自动化实现怎么做。规范成为团队共同语言和 AI 执行依据，代码是规范落地的产物。</p>
+      <figure class="hero-image">
+        <img src="openspec.png" alt="OpenSpec工程实践：SDD规范驱动开发的落地探索">
+        <figcaption class="hero-caption">OpenSpec 工程实践示意图（来源：johng.cn OpenSpec 工程实践文章）。</figcaption>
+      </figure>
+      <p>OpenSpec 参考仓库：<a href="https://github.com/Fission-AI/OpenSpec/" target="_blank" rel="noopener noreferrer">Fission-AI/OpenSpec</a>。</p>
+      <figure class="hero-image">
+        <img src="symphony-spec.png" alt="OpenAI Symphony 工程实践示意图">
+        <figcaption class="hero-caption">OpenAI Symphony 工程实践示意图（本地素材：docs/training/symphony-spec.png）。</figcaption>
+      </figure>
+      <p>OpenAI Symphony 参考仓库：<a href="https://github.com/openai/symphony" target="_blank" rel="noopener noreferrer">openai/symphony</a>。</p>
+
+      <h3>2.1 为什么要引入 SDD</h3>
+      <div class="grid">
+        <article class="card half">
+          <h3>传统痛点</h3>
+          <ul>
+            <li>需求文档与代码脱节，验收时难以对齐。</li>
+            <li>沟通成本高，跨角色理解偏差大。</li>
+            <li>问题发现晚，修复成本随着阶段后移快速上升。</li>
+            <li>知识沉淀在个人经验，人员变动后可用资产流失。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>SDD 价值</h3>
+          <ul>
+            <li><span class="em">规范即资产</span>：需求、设计、测试标准统一沉淀。</li>
+            <li><span class="em">规范即执行输入</span>：可直接驱动 AI 生成与修复。</li>
+            <li><span class="em">规范可版本化</span>：变化可追踪、可回溯、可审计。</li>
+            <li><span class="em">规范可评审</span>：把缺陷前移到“写代码之前”。</li>
+          </ul>
+        </article>
+      </div>
+      <p></p>
+      <h3>2.2 SDD 的最小可执行流程</h3>
+      <ol>
+        <li><strong>选低风险试点</strong>：先从边缘模块或新功能开始，降低组织阻力。</li>
+        <li><strong>写 SPEC</strong>：按“需求规范 + 技术规范 + 测试规范”组织内容。</li>
+        <li><strong>多角色评审 SPEC</strong>：产品、研发、测试共同签字，先达成共识再编码。</li>
+        <li><strong>AI 按 SPEC 生成实现与测试</strong>：减少自由发挥，增强一致性。</li>
+        <li><strong>门禁验证</strong>：lint、test、PR 模板检查、指标快照。</li>
+        <li><strong>持续迭代规范</strong>：问题先回写规范，再改代码，避免重复犯错。</li>
+      </ol>
+    </section>
+
+    <section id="what">
+      <h2>3) Agentic AI for Coding</h2>
+      <p>Agentic AI for Coding 是让 AI 在工程约束下完成完整交付闭环：从任务输入到代码实现、验证、PR 证据与人工验收，而不只是输出一段代码建议。</p>
+      <h3>3.1 流程结构：从想法到可交付 PR</h3>
+      <div class="flow">需求理解 → 代码理解 → 实现改动 → 测试验证 → PR 交付 → 发布追踪</div>
+      <p></p>
+      <div class="grid">
+        <article class="card third">
+          <h3>需求理解</h3>
+          <ul>
+            <li>读 Issue、验收条件、背景上下文。</li>
+            <li>把目标转成可执行任务清单。</li>
+            <li>补齐 Definition of Ready：范围、边界、非目标与约束。</li>
+            <li>识别依赖方与前置条件，避免“开工后才发现缺输入”。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>代码理解</h3>
+          <ul>
+            <li>检索模块边界与依赖关系。</li>
+            <li>圈定改动文件与测试范围。</li>
+            <li>明确关键调用链与数据流，定位真正控制行为的代码点。</li>
+            <li>同步识别潜在回归面：权限、配置、接口契约、兼容性。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>实现阶段</h3>
+          <ul>
+            <li>在既有系统中安全改代码。</li>
+            <li>补齐必要注释与类型信息。</li>
+            <li>优先最小可验证改动，先通一条主路径再扩展细节。</li>
+            <li>保持与仓库规范一致：目录边界、命名、错误处理和日志风格。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>质量保障</h3>
+          <ul>
+            <li>单元测试 + 集成测试。</li>
+            <li>lint / type-check / gate 校验。</li>
+            <li>把失败结果回写为可行动项：定位、原因、修复、复验。</li>
+            <li>对高风险改动增加针对性回归，避免“测试过但线上仍出错”。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>协作交付</h3>
+          <ul>
+            <li>PR 描述完整，审查重点清晰。</li>
+            <li>保留变更依据与测试记录。</li>
+            <li>明确影响范围、风险等级、回滚方案与观察指标。</li>
+            <li>将关键设计决策与取舍写清，减少 reviewer 反复沟通成本。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>发布运维</h3>
+          <ul>
+            <li>通过流水线发布与环境隔离。</li>
+            <li>生成周报、指标快照、回归结果。</li>
+            <li>按环境分级放量，结合告警阈值与自动回滚策略。</li>
+            <li>沉淀发布后复盘：问题根因、改进动作、流程更新。</li>
+          </ul>
+        </article>
+      </div>
+      <p></p>
+      <h3>3.2 能力建设：执行能力 + 质量能力</h3>
+      <p></p>
+      <div class="grid">
+        <article class="card half">
+          <h3>任务理解 + 仓库理解</h3>
+          <ul>
+            <li>明确目标、边界和验收标准。</li>
+            <li>识别影响模块、调用链和风险点。</li>
+            <li>建立“需求-实现-测试”映射表，确保每条需求都有落地点。</li>
+            <li>优先复用已有实现与测试资产，减少重复造轮子。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>计划拆解 + 工具调用</h3>
+          <ul>
+            <li>先计划后动手，降低盲改概率。</li>
+            <li>熟练使用搜索、读写、测试、日志工具。</li>
+            <li>把任务拆成“可验证的小步”，每步都有明确完成标准。</li>
+            <li>建立工具调用顺序：定位→修改→验证→证据整理，避免遗漏。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>安全改代码 + 自动验证</h3>
+          <ul>
+            <li>在已有架构内最小改动实现需求。</li>
+            <li>执行 lint / test / build / eval 并闭环修复。</li>
+            <li>关键变更默认双重验证：本地快速校验 + CI 门禁复验。</li>
+            <li>将失败修复纳入同一变更上下文，保证问题可追踪、可复现。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>协作汇报 + 可交接</h3>
+          <ul>
+            <li>输出清晰变更说明与风险提示。</li>
+            <li>让人类 reviewer 能快速接手和判断。</li>
+            <li>固定汇报模板：做了什么、为什么、如何验证、剩余风险。</li>
+            <li>交接时提供最小复现步骤和后续建议，降低团队接手门槛。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="github">
+      <h2>4) GitHub 生态</h2>
+      <h3>4.1 为什么 GitHub 生态适合承载 AI for Coding</h3>
+      <div class="grid">
+        <article class="card half">
+          <h3>上下文集中</h3>
+          <ul>
+            <li>Issue、PR、代码、Action 日志天然关联。</li>
+            <li>便于 AI 读取历史上下文和决策依据。</li>
+            <li>从需求讨论到最终合并都在同一平台留痕，减少信息散落。</li>
+            <li>可以快速追溯“为什么这样改、谁评审过、验证结果是什么”。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>流程与治理天然存在</h3>
+          <ul>
+            <li>分支、保护规则、CODEOWNERS、审批机制即插即用。</li>
+            <li>高风险改动可被强制人工审查。</li>
+            <li>通过模板与规则把团队共识固化为标准动作，降低个人差异。</li>
+            <li>治理策略可渐进增强：先轻规则，再按风险等级分层收紧。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>自动化成熟</h3>
+          <ul>
+            <li>Actions 可直接承接 CI、发布、评估任务。</li>
+            <li>失败信息可回写到 Issue / PR，形成可追踪闭环。</li>
+            <li>同一条流水线可复用到开发、测试、发布多个阶段，降低维护成本。</li>
+            <li>支持将质量门禁前置到提交阶段，尽早暴露问题、缩短反馈周期。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>人机协作边界清晰</h3>
+          <ul>
+            <li>AI 负责执行与产出。</li>
+            <li>人类负责架构决策与最终合并批准。</li>
+            <li>通过 PR 审查把“AI 产出”转化为“团队认可的工程变更”。</li>
+            <li>责任链明确：谁提出、谁实现、谁验证、谁批准都可审计。</li>
+          </ul>
+        </article>
+      </div>
+      <p></p>
+      <h3>4.2 GitHub-native 实践框架</h3>
+      <p>下面用统一主流程，把 GitHub 生态工具栈映射到每一个交付环节，形成“任务可追踪、执行可验证、结果可审计”的闭环：</p>
+      <div class="flow">Task(Issue) → Plan → Code → Verify → PR → Review → Release</div>
+      <p></p>
+      <div class="grid">
+        <article class="card third">
+          <h3>Task / Plan</h3>
+          <ul>
+            <li><span class="em">GitHub Issues</span>：沉淀需求、验收标准与边界。</li>
+            <li><span class="em">GitHub Projects</span>：管理优先级、泳道与状态流转。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>Code</h3>
+          <ul>
+            <li><span class="em">GitHub Copilot</span>：个人开发场景下的高效补全与建议。</li>
+            <li><span class="em">Copilot Agent</span>：按任务自主执行改动、补测与说明。</li>
+          </ul>
+        </article>
+        <article class="card third">
+          <h3>Verify / Review / Release</h3>
+          <ul>
+            <li><span class="em">GitHub Actions</span>：CI/CD 与门禁验证自动化。</li>
+            <li><span class="em">GitHub Code Review</span>：审查质量、风险与合并决策。</li>
+          </ul>
+        </article>
+      </div>
+
+      <p></p>
+      <ol>
+        <li><strong>Task(Issue)</strong>：在 Issue 中写清业务背景、目标、验收标准、非目标与风险，避免“只有一句需求就开工”。</li>
+        <li><strong>Plan(Projects)</strong>：在 Projects 中拆分任务卡片、设置负责人与优先级，确保团队对节奏和依赖有共同认知。</li>
+        <li><strong>Code(Copilot + Agent)</strong>：Copilot 提升个人编码效率，Agent 负责任务级实现与测试补齐，减少重复机械工作。</li>
+        <li><strong>Verify(Actions)</strong>：统一跑 lint/test/build/eval，把质量标准从“人工感觉”升级为“流水线事实”。</li>
+        <li><strong>PR</strong>：以 PR 作为交付单元，要求变更说明、测试结果、风险评估、回滚方案完整可审计。</li>
+        <li><strong>Review(Code Review)</strong>：人类 reviewer 聚焦架构决策、边界条件、回归风险，AI 产出必须经过团队批准后合并。</li>
+        <li><strong>Release(Actions + Environments)</strong>：按环境分级发布并保留发布记录，出现异常可快速定位并回滚。</li>
+      </ol>
+      <p class="key-takeaway">落地建议：先从一个业务线跑通这条最小闭环，再逐步把模板、门禁和评估扩展到全团队，避免“一次性全面改造”带来的推进阻力。</p>
+    </section>
+
+    <section id="repo-map">
+      <h2>5) 结合当前仓库的落地映射</h2>
+      <p>以下内容直接来自本仓库的文件结构和规范，便于培训后立即执行。</p>
+
+      <h3>5.1 核心入口与规范文件</h3>
+      <ul>
+        <li><strong>AGENTS.md</strong>：统一入口，定义默认执行流程和中断边界。</li>
+        <li><strong>SPEC.md</strong>：项目级需求与约束基线，用于统一目标、范围和验收口径。</li>
+        <li><strong>.github/copilot-instructions.md</strong>：编码规范、质量要求、PR 约束。</li>
+        <li><strong>WORKFLOW.md</strong>：自动化调度配置（hooks、并发、重试、超时）。</li>
+        <li><strong>.github/pull_request_template.md</strong>：PR 描述完整性基准。</li>
+      </ul>
+
+      <h3>5.2 .github 目录运行体系（重点）</h3>
+      <p>在本仓库里，真正决定 AI for Coding 是否可规模化落地的，不是示例业务代码，而是 <span class="em">.github 下的流程资产</span>。它把“任务定义、执行路径、质量门禁、交付审查”变成可复制的标准机制。</p>
+      <div class="flow">issues-backlog(draft/ready/published) → publish script → GitHub Issue → manual 或 automation 执行 → PR/Review/Release</div>
+      <p></p>
+      <div class="grid">
+        <article class="card half">
+          <h3>规范入口层</h3>
+          <ul>
+            <li><strong>.github/ISSUE_TEMPLATE/</strong>：统一任务输入结构，减少需求歧义。</li>
+            <li><strong>.github/pull_request_template.md</strong>：固定 PR 输出结构，强制测试计划与审查重点。</li>
+            <li><strong>.github/copilot-instructions.md</strong>：约束 AI 执行边界、质量要求与交付规范。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>任务池层（issues-backlog）</h3>
+          <ul>
+            <li><strong>.github/issues-backlog/</strong>：本地 backlog 池，支持 draft/ready/published 状态流转。</li>
+            <li>先在本地沉淀任务，再发布到 GitHub，保证任务质量先达标再进入执行队列。</li>
+            <li>发布后自动回填 issue 编号与 URL，实现本地文档与远端任务双向可追踪。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>Manual 模式（人工监督）</h3>
+          <ul>
+            <li><strong>.github/manual/README.md</strong>：定义“一次一任务”的人工介入模式。</li>
+            <li><strong>prepare-single-issue</strong> 脚本：准备单 Issue 工作区并生成执行提示。</li>
+            <li><strong>publish-backlog-issue</strong> 脚本：将本地 backlog 发布为 GitHub Issue 并自动回填元数据。</li>
+            <li>适用场景：高风险任务、流程试运行、需要现场讲解和逐步验收的任务。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>Automation 模式（批处理编排）</h3>
+          <ul>
+            <li><strong>.github/automation/README.md</strong>：定义低干预或无人值守模式。</li>
+            <li><strong>celery_dispatcher.py + celery_tasks.py</strong>：调度与执行分离，支持队列化并发处理。</li>
+            <li><strong>scripts/</strong>：run-forever、run-celery-worker、quality-gate、metrics-snapshot 等运维与门禁脚本。</li>
+            <li>核心能力：自动筛选可执行任务、隔离执行、失败分类、指标沉淀、周报支撑。</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="key-takeaway">培训建议：先讲 Manual 模式建立“可控闭环”，再讲 Automation 模式实现“规模化吞吐”。两者不是替代关系，而是从稳态到规模的升级路径。</p>
+
+      <h3>5.3 培训现场可演示的最小闭环</h3>
+      <ol>
+        <li>选一个已有 Issue 或模拟需求。</li>
+        <li>展示 Agent 如何读取规范与代码上下文。</li>
+        <li>完成一次小改动并补齐测试。</li>
+        <li>运行 gate，展示失败项定位与修复。</li>
+        <li>生成 PR 描述并标注测试计划（已执行 / 未执行）。</li>
+      </ol>
+    </section>
+
+    <section id="practice">
+      <h2>6) 实战经验</h2>
+      <p>这里讲的是 code 里的实战经验：哪些动作适合做成 Skill，哪些上下文应该通过 MCP 接进来，哪些经验要放进跨会话记忆，哪些大任务要交给 code agent 的 multi-agent 能力并行跑。四者配合起来，Agent 才能稳定理解任务、持续执行并把结果沉淀下来。</p>
+
+      <div class="grid">
+        <article class="card half">
+          <h3>6.1 Skill 工具</h3>
+          <ul>
+            <li><strong><a href="https://github.com/anthropics/skills" target="_blank" rel="noopener noreferrer">Anthropic Skills</a></strong>：Public repository for Agent Skills，适合直接参考 Agent 技能的组织方式与能力模板。</li>
+            <li><strong><a href="https://github.com/nextlevelbuilder/ui-ux-pro-max-skill" target="_blank" rel="noopener noreferrer">UI/UX Pro Max Skill</a></strong>：把前端设计从“口头描述”变成“可执行设计动作”，适合做页面布局、视觉层级和组件拆解。</li>
+            <li><strong><a href="https://github.com/andrewyng/context-hub" target="_blank" rel="noopener noreferrer">context-hub</a></strong>：把各种代码包的使用手册聚合起来，让 Agent 先查文档再动手。</li>
+            <li><strong><a href="https://github.com/vercel-labs/skills" target="_blank" rel="noopener noreferrer">skills</a></strong>：开发技能包资源库，适合参考和复用常见工作流能力。</li>
+          </ul>
+        </article>
+
+        <article class="card half">
+          <h3>6.2 MCP 工具</h3>
+          <ul>
+            <li><strong><a href="https://github.com/modelcontextprotocol/servers" target="_blank" rel="noopener noreferrer">Model Context Protocol Servers</a></strong>：MCP 官方服务集合，适合作为统一入口查找 memory、git 等常见服务实现。</li>
+            <li><strong><a href="https://github.com/github/github-mcp-server" target="_blank" rel="noopener noreferrer">GitHub MCP Server</a></strong>：GitHub 官方 MCP Server，适合把 Issue、PR、Repo、Workflow 等 GitHub 资源直接接入 Agent。</li>
+            <li><strong><a href="https://github.com/figma/mcp-server-guide" target="_blank" rel="noopener noreferrer">Figma MCP</a></strong>：直接把设计图变成前端上下文，减少“看图猜需求”的误差。</li>
+            <li><strong><a href="https://github.com/upstash/context7" target="_blank" rel="noopener noreferrer">Context7</a></strong>：适合为 LLM 和 AI 代码编辑器提供最新代码文档，让 Agent 在生成实现前先读取更贴近真实版本的 API 与用法说明。</li>
+          </ul>
+        </article>
+
+        <article class="card half">
+          <h3>6.3 跨会话记忆：把代码经验保存下来</h3>
+          <ul>
+            <li><strong>经验做法</strong>：每个会话解决单个问题，不要在一个会话中处理过多任务。这也就是要拆分Issue的原因。</li>
+            <li><strong>Global Memory</strong>：放架构原则、技术栈选择、模块边界、命名规范和质量红线等一系列全局信息。可以放到SPEC.md和AGENTS.md</li>
+            <li><strong>Task Memory</strong>：放单次任务的上下文、临时决策、执行过程和验证结果。说白了就是拆分出来的Issue内容。</li>
+            <li><strong>可以记忆用工具 server-memory</strong>：<a href="https://github.com/modelcontextprotocol/servers/tree/main/src/memory" target="_blank" rel="noopener noreferrer">@modelcontextprotocol/server-memory</a> 知识图谱存储形式，适合承载长期记忆。</li>
+          </ul>
+        </article>
+
+        <article class="card half">
+          <h3>6.4 多任务编排：用 multi-agent 跑并行任务</h3>
+          <ul>
+            <li><strong>规划 Agent</strong>：我一般先让规划 Agent 读 Issue 和 Global Memory，让他拆任务到小的粒度和单元测试如何编写。</li>
+            <li><strong>执行 Agent</strong>：一些执行 Code Agent 有多任务的能力，可以分别负责代码修改、测试补齐、文档更新、上下文回写。</li>
+            <li><strong>Review Agent</strong>：我一般会让他把代码再讲一遍，然后说下整体架构有没有跑偏，并结合GitHub的PR工具进行审查。</li>
+            <li><strong>经验做法</strong>：别一下跑多个，咱们没有紧张到需要多个Agent去写代码的程度。关键是想好、设计好、分配好任务。</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="key-takeaway">一句话总结：<strong>Skill 负责把重复动作标准化，MCP 负责把外部能力接进来，跨会话记忆负责沉淀经验，multi-agent 负责把大任务并行跑起来。</strong></p>
+
+      <div class="grid">
+        <article class="card half">
+          <h3>6.5 最小可落地组合</h3>
+          <ul>
+            <li>个人先用 Skill + MCP，把最常见的设计、文档、上下文读取打通。</li>
+            <li>团队再加跨会话记忆，把项目约定、踩坑经验、接口契约沉淀下来。</li>
+            <li>规模化时再上 multi-agent，把一个大任务拆成多个并行子任务去跑。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>6.6 什么时候最值得上这些能力</h3>
+          <ul>
+            <li>当重复动作已经影响效率，且开始出现“每次都要重新讲一遍”的情况。</li>
+            <li>当任务需要跨会话、跨角色、跨仓库持续推进时。</li>
+            <li>当一个大 Issue 需要拆成多个并行任务，适合让多个 code agent 一起跑时。</li>
+          </ul>
+        </article>
+      </div>
+      <p></p>
+      <p class="warn">实战顺序建议：先从 Skill 工具试点，再把 MCP 接上，然后加跨会话记忆，最后再用 multi-agent 跑并行任务；不要一开始就把所有能力全装上。</p>
+    </section>
+
+    <section id="summary">
+      <h2>7) 结尾总结</h2>
+      <ul>
+        <li>Vibe Coding 解决“快”，AI for Coding 解决“能否进入真实研发流程”。</li>
+        <li>高价值不在于生成几行代码，而在于可验证、可审计、可协作、可持续迭代。</li>
+        <li>SDD 把“规范”变成执行入口，让 AI 从对话助手升级为可治理的工程执行者。</li>
+        <li>落地路径建议：从 <span class="em">GitHub-native + 人机协作 + 质量闭环</span> 起步，而不是一步到位追求全自动。</li>
+      </ul>
+      <p>一句话：<strong>AI for Coding = AI + 工具 + 工作流 + 工程治理</strong>。</p>
+
+      <div class="grid">
+        <article class="card half">
+          <h3>Vibe Coding 常见问题</h3>
+          <ul>
+            <li>能写出来，不一定能维护。</li>
+            <li>能跑起来，不一定能验证。</li>
+            <li>改动影响范围不可见，回归风险高。</li>
+            <li>输出质量依赖个人提示词，不稳定。</li>
+          </ul>
+        </article>
+        <article class="card half">
+          <h3>AI for Coding 的目标</h3>
+          <ul>
+            <li><span class="em">工程化</span>：不是聊天结果，而是可合并变更。</li>
+            <li><span class="em">可验证</span>：必须经过 lint / test / gate。</li>
+            <li><span class="em">可审计</span>：Issue、PR、Actions 全链路可追踪。</li>
+            <li><span class="em">可协作</span>：AI 实现，人类 review 与决策。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <p class="footer">本页为仓库内培训资料，可直接用于分享、投屏或导出打印版本。</p>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
