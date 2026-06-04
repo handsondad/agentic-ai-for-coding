@@ -35,12 +35,16 @@ logger = logging.getLogger(__name__)
 
 def _build_celery_app() -> Any:
     if Celery is None:
-        raise RuntimeError("celery is required. Install with: pip install celery[redis]")
+        raise RuntimeError(
+            "celery is required. Install with: pip install celery[redis]"
+        )
 
     app = Celery(
         "automation_runner",
         broker=os.getenv("AUTOMATION_CELERY_BROKER_URL", "redis://localhost:6379/0"),
-        backend=os.getenv("AUTOMATION_CELERY_RESULT_BACKEND", "redis://localhost:6379/1"),
+        backend=os.getenv(
+            "AUTOMATION_CELERY_RESULT_BACKEND", "redis://localhost:6379/1"
+        ),
     )
     app.conf.update(
         task_default_queue=os.getenv("AUTOMATION_CELERY_QUEUE", "automation_issues"),
@@ -55,9 +59,13 @@ celery_app = _build_celery_app()
 
 
 @celery_app.task(name="automation.run_issue")
-def run_issue_task(issue_number: int, workflow_path: str = "WORKFLOW.md") -> dict[str, Any]:
+def run_issue_task(
+    issue_number: int, workflow_path: str = "WORKFLOW.md"
+) -> dict[str, Any]:
     """Execute one issue pipeline in a Celery worker process."""
-    return asyncio.run(_run_issue_async(issue_number=issue_number, workflow_path=workflow_path))
+    return asyncio.run(
+        _run_issue_async(issue_number=issue_number, workflow_path=workflow_path)
+    )
 
 
 async def _run_issue_async(issue_number: int, workflow_path: str) -> dict[str, Any]:
@@ -120,7 +128,9 @@ async def _run_issue_async(issue_number: int, workflow_path: str) -> dict[str, A
         raise
 
     if result.changed and result.pr_url:
-        await _safe_comment(github, issue.number, f"自动处理完成，已创建 PR: {result.pr_url}")
+        await _safe_comment(
+            github, issue.number, f"自动处理完成，已创建 PR: {result.pr_url}"
+        )
         await _safe_add_labels(github, issue.number, ["human-review"])
     else:
         await _safe_comment(github, issue.number, "自动执行完成，但未检测到代码变更。")
@@ -147,18 +157,26 @@ async def _run_issue_async(issue_number: int, workflow_path: str) -> dict[str, A
     }
 
 
-async def _safe_add_labels(github: GitHubClient, issue_number: int, labels: list[str]) -> None:
+async def _safe_add_labels(
+    github: GitHubClient, issue_number: int, labels: list[str]
+) -> None:
     try:
         await github.add_labels(issue_number, labels)
     except Exception as exc:
-        logger.warning("issue=%s add_labels failed labels=%s err=%s", issue_number, labels, exc)
+        logger.warning(
+            "issue=%s add_labels failed labels=%s err=%s", issue_number, labels, exc
+        )
 
 
-async def _safe_remove_label(github: GitHubClient, issue_number: int, label: str) -> None:
+async def _safe_remove_label(
+    github: GitHubClient, issue_number: int, label: str
+) -> None:
     try:
         await github.remove_label(issue_number, label)
     except Exception as exc:
-        logger.warning("issue=%s remove_label failed label=%s err=%s", issue_number, label, exc)
+        logger.warning(
+            "issue=%s remove_label failed label=%s err=%s", issue_number, label, exc
+        )
 
 
 async def _safe_comment(github: GitHubClient, issue_number: int, body: str) -> None:
@@ -181,7 +199,9 @@ async def _record_metrics_event(
 ) -> None:
     completed_at = datetime.now(tz=UTC)
     duration_ms = int((time.perf_counter() - started_perf) * 1000)
-    quality_gate_failures = sum(1 for item in quality_results if getattr(item, "exit_code", 0) != 0)
+    quality_gate_failures = sum(
+        1 for item in quality_results if getattr(item, "exit_code", 0) != 0
+    )
     gate_passed = quality_gate_failures == 0 and success
 
     failure_category = None

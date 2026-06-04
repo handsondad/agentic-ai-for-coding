@@ -17,7 +17,9 @@ def main() -> None:
     subparsers.add_parser("after-create", help="Install workspace dependencies")
 
     before_run = subparsers.add_parser("before-run", help="Sync the latest base branch")
-    before_run.add_argument("--base-branch", default="main", help="Base branch to fetch")
+    before_run.add_argument(
+        "--base-branch", default="main", help="Base branch to fetch"
+    )
 
     subparsers.add_parser("after-run", help="Clean generated Python cache files")
 
@@ -41,7 +43,9 @@ def run_after_create(cwd: Path) -> None:
     pyproject_file = cwd / "pyproject.toml"
 
     if requirements_file.exists():
-        _run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], cwd)
+        _run_command(
+            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], cwd
+        )
 
     if pyproject_file.exists():
         _run_command([sys.executable, "-m", "pip", "install", "-e", ".[dev]"], cwd)

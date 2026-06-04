@@ -19,7 +19,10 @@ def classify_failure(message: str) -> FailureClassification:
     """Classify failure message into standard categories."""
     lowered = message.lower()
 
-    if any(token in lowered for token in ["403", "forbidden", "permission", "token", "auth"]):
+    if any(
+        token in lowered
+        for token in ["403", "forbidden", "permission", "token", "auth"]
+    ):
         return FailureClassification(
             category="network_or_permission",
             reason="认证或权限不足，导致 GitHub 写操作失败。",
@@ -47,7 +50,10 @@ def classify_failure(message: str) -> FailureClassification:
             retryable=True,
         )
 
-    if any(token in lowered for token in ["quality", "lint", "mypy", "pytest", "test", "格式"]):
+    if any(
+        token in lowered
+        for token in ["quality", "lint", "mypy", "pytest", "test", "格式"]
+    ):
         return FailureClassification(
             category="code_defect",
             reason="代码质量门禁未通过。",
@@ -55,7 +61,10 @@ def classify_failure(message: str) -> FailureClassification:
             retryable=True,
         )
 
-    if any(token in lowered for token in ["acceptance", "需求", "scope", "冲突", "ambiguous"]):
+    if any(
+        token in lowered
+        for token in ["acceptance", "需求", "scope", "冲突", "ambiguous"]
+    ):
         return FailureClassification(
             category="requirements_gap",
             reason="需求信息不足或存在冲突，无法继续自动执行。",

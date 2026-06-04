@@ -52,7 +52,9 @@ def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
 
 def main() -> None:
     """CLI entrypoint."""
-    parser = argparse.ArgumentParser(description="Publish backlog markdown to GitHub Issue")
+    parser = argparse.ArgumentParser(
+        description="Publish backlog markdown to GitHub Issue"
+    )
     parser.add_argument("file", help="Path to backlog markdown file")
     parser.add_argument("--repo", default="", help="Target repo in owner/name format")
     parser.add_argument(
@@ -139,7 +141,9 @@ def validate_backlog_issue(issue: BacklogIssue, allow_draft: bool = False) -> No
     if status == "published":
         raise PublishError("Backlog issue is already published")
     if status != "ready" and not allow_draft:
-        raise PublishError("Backlog status must be ready (use --allow-draft to override)")
+        raise PublishError(
+            "Backlog status must be ready (use --allow-draft to override)"
+        )
 
     labels = issue.meta.get("labels")
     if not isinstance(labels, list) or not labels:
@@ -162,12 +166,18 @@ def detect_git_repo(backlog_file: Path) -> str:
     if git_path is None:
         raise PublishError("git executable not found in PATH")
 
-    result = run_command([git_path, "-C", str(repo_root), "remote", "get-url", "origin"])
+    result = run_command(
+        [git_path, "-C", str(repo_root), "remote", "get-url", "origin"]
+    )
     if result.returncode != 0:
-        raise PublishError(f"Failed to detect git remote: {result.stdout}{result.stderr}")
+        raise PublishError(
+            f"Failed to detect git remote: {result.stdout}{result.stderr}"
+        )
 
     remote = result.stdout.strip()
-    match = re.search(r"github.com[:/](?P<owner>[^/]+)/(?P<repo>[^/.]+)(?:\.git)?$", remote)
+    match = re.search(
+        r"github.com[:/](?P<owner>[^/]+)/(?P<repo>[^/.]+)(?:\.git)?$", remote
+    )
     if match is None:
         raise PublishError(f"Unsupported remote URL: {remote}")
 
@@ -182,7 +192,9 @@ def normalize_labels(raw: Any) -> list[str]:
     return labels
 
 
-def create_github_issue(repo: str, title: str, labels: list[str], body: str) -> tuple[str, bool]:
+def create_github_issue(
+    repo: str, title: str, labels: list[str], body: str
+) -> tuple[str, bool]:
     """Create GitHub issue using gh CLI and return (url, created_new)."""
     gh_path = shutil.which("gh")
     if gh_path is None:
@@ -300,7 +312,9 @@ def ensure_labels_exist(gh_path: str, repo: str, labels: list[str]) -> None:
         [gh_path, "label", "list", "--repo", repo, "--json", "name", "--limit", "200"]
     )
     if list_result.returncode != 0:
-        raise PublishError(f"gh label list failed: {list_result.stdout}{list_result.stderr}")
+        raise PublishError(
+            f"gh label list failed: {list_result.stdout}{list_result.stderr}"
+        )
 
     try:
         payload = yaml.safe_load(list_result.stdout)

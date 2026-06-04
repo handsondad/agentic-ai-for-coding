@@ -20,7 +20,13 @@ try:
     )
 except ImportError:
     from github_client import GitHubClient
-    from models import GitHubIssue, PipelineResult, QualityGateResult, RuntimeSettings, slugify
+    from models import (
+        GitHubIssue,
+        PipelineResult,
+        QualityGateResult,
+        RuntimeSettings,
+        slugify,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +61,9 @@ class IssuePipeline:
 
         try:
             await self._run_agent(issue, worktree_path)
-            quality_results = await self._run_quality_checks(issue, worktree_path, branch_name)
+            quality_results = await self._run_quality_checks(
+                issue, worktree_path, branch_name
+            )
         finally:
             if self._settings.hooks.after_run:
                 await self._run_hook_command(
@@ -102,7 +110,9 @@ class IssuePipeline:
             "yes",
         }
         if skip_fetch:
-            logger.warning("AUTOMATION_SKIP_GIT_FETCH enabled; skipping remote fetch step.")
+            logger.warning(
+                "AUTOMATION_SKIP_GIT_FETCH enabled; skipping remote fetch step."
+            )
         else:
             await self._run_command(
                 f"git fetch origin {self._settings.base_branch}",
@@ -129,7 +139,9 @@ class IssuePipeline:
                 )
             return
 
-        status = await self._run_command("git status --porcelain", cwd=path, check=False)
+        status = await self._run_command(
+            "git status --porcelain", cwd=path, check=False
+        )
         if status.stdout.strip():
             raise PipelineError(f"工作目录存在未提交改动，请先清理: {path}")
 
@@ -138,7 +150,9 @@ class IssuePipeline:
             cwd=path,
         )
 
-    async def _render_issue_prompt(self, issue: GitHubIssue, worktree_path: Path) -> None:
+    async def _render_issue_prompt(
+        self, issue: GitHubIssue, worktree_path: Path
+    ) -> None:
         prompt_dir = worktree_path / ".automation"
         prompt_dir.mkdir(parents=True, exist_ok=True)
 
@@ -199,7 +213,9 @@ class IssuePipeline:
         return results
 
     async def _has_git_changes(self, worktree_path: Path) -> bool:
-        result = await self._run_command("git status --porcelain", cwd=worktree_path, check=False)
+        result = await self._run_command(
+            "git status --porcelain", cwd=worktree_path, check=False
+        )
         return bool(result.stdout.strip())
 
     async def _commit_and_push(
@@ -210,7 +226,9 @@ class IssuePipeline:
     ) -> None:
         await self._run_command("git add -A", cwd=worktree_path)
 
-        check = await self._run_command("git diff --cached --quiet", cwd=worktree_path, check=False)
+        check = await self._run_command(
+            "git diff --cached --quiet", cwd=worktree_path, check=False
+        )
         if check.exit_code == 0:
             raise PipelineError("没有可提交改动")
 
@@ -295,7 +313,9 @@ def _exec_shell(command: str, cwd: Path) -> CommandResult:
                     errors="replace",
                 )
             else:
-                powershell_executable = r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+                powershell_executable = (
+                    r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+                )
                 process = subprocess.run(  # noqa: S603
                     [powershell_executable, "-NoProfile", "-Command", command],
                     cwd=str(cwd),
@@ -306,7 +326,9 @@ def _exec_shell(command: str, cwd: Path) -> CommandResult:
                     errors="replace",
                 )
         else:
-            powershell_executable = r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+            powershell_executable = (
+                r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+            )
             process = subprocess.run(  # noqa: S603
                 [powershell_executable, "-NoProfile", "-Command", command],
                 cwd=str(cwd),
@@ -329,7 +351,9 @@ def _exec_shell(command: str, cwd: Path) -> CommandResult:
         )
 
     output = (process.stdout or "") + (process.stderr or "")
-    return CommandResult(exit_code=process.returncode, stdout=output, stderr=process.stderr or "")
+    return CommandResult(
+        exit_code=process.returncode, stdout=output, stderr=process.stderr or ""
+    )
 
 
 def _should_use_bash_on_windows(command: str) -> bool:

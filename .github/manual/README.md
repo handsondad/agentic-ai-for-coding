@@ -27,33 +27,6 @@
    - Linux/macOS: `sh .github/manual/scripts/run-quality-gate.sh --mode full`
 4. 通过后再执行 commit / push / PR。
 
-## 环境变量说明
-
-### 公共变量（automation/manual 都会用到）
-
-- `GITHUB_TOKEN`
-  - 必填。访问 GitHub API 所需令牌。
-- `GITHUB_REPOSITORY`
-  - 必填。格式 `owner/repo`。
-- `GITHUB_BASE_BRANCH`
-  - 可选。默认 `main`，用于准备 worktree 时的基线分支。
-
-### 手动模式专属变量
-
-- `MANUAL_REPO_ROOT`
-  - 可选。手动脚本运行时的仓库根目录覆盖。
-- `MANUAL_WORKSPACE_ROOT`
-  - 可选。单 issue worktree 的输出目录覆盖。
-
-## 快速配置示例（PowerShell）
-
-```powershell
-[Environment]::SetEnvironmentVariable("GITHUB_TOKEN", "<token>", "User")
-[Environment]::SetEnvironmentVariable("GITHUB_REPOSITORY", "owner/repo", "User")
-[Environment]::SetEnvironmentVariable("GITHUB_BASE_BRANCH", "main", "User")
-[Environment]::SetEnvironmentVariable("MANUAL_WORKSPACE_ROOT", "C:\\Xiuqin\\code\\agentic-ai-for-coding\\.worktrees", "User")
-```
-
 ## 边界约定
 
 - `.github/automation/` 仅用于 Celery 批处理自动化。

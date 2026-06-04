@@ -26,7 +26,9 @@ from metrics import (  # noqa: E402
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Generate weekly metrics snapshot")
-    parser.add_argument("--period", default="weekly", choices=["weekly"], help="Snapshot period")
+    parser.add_argument(
+        "--period", default="weekly", choices=["weekly"], help="Snapshot period"
+    )
     parser.add_argument(
         "--events-file",
         default=".automation/execution-metrics.jsonl",

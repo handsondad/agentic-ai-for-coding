@@ -21,7 +21,16 @@ def _build_steps(mode: str) -> list[GateStep]:
     steps = [
         GateStep(
             name="format-check",
-            command=["python", "-m", "ruff", "format", "--check", "src", "tests", ".github"],
+            command=[
+                "python",
+                "-m",
+                "ruff",
+                "format",
+                "--check",
+                "src",
+                "tests",
+                ".github",
+            ],
         ),
         GateStep(
             name="lint",
@@ -41,7 +50,14 @@ def _build_steps(mode: str) -> list[GateStep]:
         steps.append(
             GateStep(
                 name="integration-test",
-                command=["python", "-m", "pytest", "tests/integration", "-v", "--timeout=60"],
+                command=[
+                    "python",
+                    "-m",
+                    "pytest",
+                    "tests/integration",
+                    "-v",
+                    "--timeout=60",
+                ],
             )
         )
 

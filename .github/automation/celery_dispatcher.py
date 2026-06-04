@@ -40,7 +40,9 @@ class CeleryDispatchService:
 
     def __init__(self, settings: RuntimeSettings) -> None:
         self._settings = settings
-        self._github = GitHubClient(token=settings.github_token, repo=settings.github_repo)
+        self._github = GitHubClient(
+            token=settings.github_token, repo=settings.github_repo
+        )
         os.environ["AUTOMATION_CELERY_BROKER_URL"] = settings.celery_broker_url
         os.environ["AUTOMATION_CELERY_RESULT_BACKEND"] = settings.celery_result_backend
         os.environ["AUTOMATION_CELERY_QUEUE"] = settings.celery_queue
@@ -88,9 +90,13 @@ class CeleryDispatchService:
             ]
 
             level_numbers = [issue.number for issue in level]
-            logger.info("celery-mode: dispatch level=%s issues=%s", index, level_numbers)
+            logger.info(
+                "celery-mode: dispatch level=%s issues=%s", index, level_numbers
+            )
 
-            group_result = group(signatures).apply_async(queue=self._settings.celery_queue)
+            group_result = group(signatures).apply_async(
+                queue=self._settings.celery_queue
+            )
             await asyncio.to_thread(group_result.get, None, False)
 
             failed = [item.id for item in group_result.results if not item.successful()]
@@ -156,7 +162,9 @@ def build_dependency_levels(issues: list[GitHubIssue]) -> list[list[GitHubIssue]
         ready = sorted(next_ready, key=lambda item: _sort_key(issue_map[item]))
 
     if processed != len(issues):
-        raise CeleryDispatcherError("检测到循环依赖，请检查 Issue body 中的 Depends on 声明")
+        raise CeleryDispatcherError(
+            "检测到循环依赖，请检查 Issue body 中的 Depends on 声明"
+        )
 
     return levels
 
@@ -186,7 +194,9 @@ def _sort_key(issue: GitHubIssue) -> tuple[datetime, int]:
 
 def _require_celery() -> None:
     if group is None:
-        raise CeleryDispatcherError("未安装 celery，请先安装: pip install celery[redis]")
+        raise CeleryDispatcherError(
+            "未安装 celery，请先安装: pip install celery[redis]"
+        )
 
 
 def _resolve_base_head(settings: RuntimeSettings) -> Any:
@@ -306,7 +316,9 @@ def _record_dispatched_issues(
     now = datetime.now(tz=UTC).isoformat()
     for issue in issues:
         issues_state[str(issue.number)] = {
-            "issue_updated_at": issue.updated_at.isoformat() if issue.updated_at else "",
+            "issue_updated_at": issue.updated_at.isoformat()
+            if issue.updated_at
+            else "",
             "base_head": base_head or "",
             "last_dispatched_at": now,
         }
