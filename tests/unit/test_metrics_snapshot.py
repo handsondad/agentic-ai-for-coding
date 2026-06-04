@@ -8,12 +8,7 @@ from pathlib import Path
 
 
 def _load_module() -> object:
-    script_path = (
-        Path(__file__).resolve().parents[2]
-        / ".github"
-        / "automation"
-        / "metrics.py"
-    )
+    script_path = Path(__file__).resolve().parents[2] / ".github" / "automation" / "metrics.py"
     spec = importlib.util.spec_from_file_location("automation_metrics", script_path)
     assert spec is not None
     assert spec.loader is not None

@@ -55,6 +55,31 @@
 
 ## 5) 发布流程（单条）
 
+在发布前，建议先走“分支化创建”流程，确保 backlog 的本地改动可追溯：
+
+1. 同步 `main` 并创建独立 backlog 分支
+2. 在分支中创建/编辑 backlog 草稿
+3. 草稿达到 `ready` 后再发布到 GitHub
+
+推荐分支命名：
+
+- `backlog/<type>-YYYYMMDD-<slug>`
+- 示例：`backlog/task-20260604-optimize-issue-creation-flow`
+
+推荐命令（Windows PowerShell）：
+
+```powershell
+pwsh .github/manual/scripts/start-backlog-issue.ps1 -Type task -Title "优化 issue 创建流程"
+```
+
+推荐命令（Linux/macOS）：
+
+```bash
+sh .github/manual/scripts/start-backlog-issue.sh --type task --title "优化 issue 创建流程"
+```
+
+然后再执行发布：
+
 1. 从 backlog 中选择 `status: ready` 的文件
 2. 使用自动发布脚本创建 GitHub Issue 并自动回填本地元数据
 

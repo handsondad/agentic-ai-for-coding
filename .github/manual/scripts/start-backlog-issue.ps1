@@ -1,0 +1,45 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("feature", "bug", "task")]
+    [string]$Type,
+    [Parameter(Mandatory = $true)]
+    [string]$Title,
+    [string]$Date = "",
+    [string]$Slug = "",
+    [string]$BaseBranch = "main",
+    [string]$BranchPrefix = "backlog",
+    [string]$OutputRoot = ".github/issues-backlog",
+    [string]$Template = ".github/issues-backlog/TEMPLATE.md",
+    [switch]$DryRun,
+    [string]$PythonExe = "python"
+)
+
+$ErrorActionPreference = "Stop"
+
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$runner = Join-Path $scriptDir "start-backlog-issue.py"
+
+$cmd = @(
+    $runner,
+    "--type", $Type,
+    "--title", $Title,
+    "--base-branch", $BaseBranch,
+    "--branch-prefix", $BranchPrefix,
+    "--output-root", $OutputRoot,
+    "--template", $Template
+)
+
+if ($Date) {
+    $cmd += @("--date", $Date)
+}
+if ($Slug) {
+    $cmd += @("--slug", $Slug)
+}
+if ($DryRun) {
+    $cmd += "--dry-run"
+}
+
+& $PythonExe $cmd
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}

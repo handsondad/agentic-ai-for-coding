@@ -106,9 +106,7 @@ def run_step(step: GateStep, cwd: Path) -> GateResult:
     )
 
 
-def run_quality_gates(
-    mode: str, cwd: Path, continue_on_error: bool
-) -> list[GateResult]:
+def run_quality_gates(mode: str, cwd: Path, continue_on_error: bool) -> list[GateResult]:
     """Run all configured quality-gate steps."""
     results: list[GateResult] = []
     for step in build_steps(mode):
@@ -181,14 +179,10 @@ def write_report(results: list[GateResult], mode: str, report_path: Path) -> Non
     """Write the quality-gate JSON report file."""
     report_path.parent.mkdir(parents=True, exist_ok=True)
     payload = report_payload(results, mode)
-    report_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    report_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def write_markdown_summary(
-    results: list[GateResult], mode: str, summary_path: Path
-) -> None:
+def write_markdown_summary(results: list[GateResult], mode: str, summary_path: Path) -> None:
     """Write markdown summary for reuse in PR/issue comments."""
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(markdown_summary(results, mode), encoding="utf-8")
@@ -216,9 +210,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Run unified quality gates")
     parser.add_argument("--mode", choices=["quick", "full", "ci"], default="quick")
-    parser.add_argument(
-        "--repo-root", default=".", help="Repository root to execute commands in"
-    )
+    parser.add_argument("--repo-root", default=".", help="Repository root to execute commands in")
     parser.add_argument(
         "--report-file",
         default=".automation/quality-gate-report.json",

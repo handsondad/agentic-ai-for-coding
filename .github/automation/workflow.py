@@ -37,23 +37,16 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     repo = _parse_repo(repo_raw)
 
     active_labels = _as_label_list(tracker.get("active_states", ["ai-ready"]))
-    terminal_labels = _as_label_list(
-        tracker.get("terminal_states", ["done", "cancelled"])
-    )
+    terminal_labels = _as_label_list(tracker.get("terminal_states", ["done", "cancelled"]))
 
     poll_interval_ms = int(polling.get("interval_ms", 30000))
     max_concurrent_agents = int(agent.get("max_concurrent_agents", 1))
 
     repo_root = Path(os.getenv("AUTOMATION_REPO_ROOT", os.getcwd())).resolve()
     workspace_root_raw = workspace.get("root", "$AUTOMATION_WORKSPACE_ROOT")
-    workspace_root = Path(
-        _resolve_env_like(str(workspace_root_raw), allow_missing=True)
-    ).resolve()
+    workspace_root = Path(_resolve_env_like(str(workspace_root_raw), allow_missing=True)).resolve()
 
-    if (
-        str(workspace_root_raw).startswith("$")
-        and workspace_root == Path(".").resolve()
-    ):
+    if str(workspace_root_raw).startswith("$") and workspace_root == Path(".").resolve():
         workspace_root = repo_root / ".worktrees"
 
     quality_commands = _parse_quality_commands(
@@ -71,15 +64,9 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     dry_run = _parse_bool(os.getenv("AUTOMATION_DRY_RUN", "false"))
 
     hooks = WorkflowHooks(
-        after_create=_render_hook_template(
-            hooks_map.get("after_create"), repo_root, base_branch
-        ),
-        before_run=_render_hook_template(
-            hooks_map.get("before_run"), repo_root, base_branch
-        ),
-        after_run=_render_hook_template(
-            hooks_map.get("after_run"), repo_root, base_branch
-        ),
+        after_create=_render_hook_template(hooks_map.get("after_create"), repo_root, base_branch),
+        before_run=_render_hook_template(hooks_map.get("before_run"), repo_root, base_branch),
+        after_run=_render_hook_template(hooks_map.get("after_run"), repo_root, base_branch),
     )
 
     celery_broker_url = _opt_str(os.getenv("AUTOMATION_CELERY_BROKER_URL"))

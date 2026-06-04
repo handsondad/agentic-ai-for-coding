@@ -624,6 +624,16 @@ schtasks /Create /SC MINUTE /MO 1 /TN "AI-Issue-AutoRunner" /TR "pwsh -NoProfile
 
 如果你先在 `.github/issues-backlog/` 里维护草稿，可用以下命令一键完成：
 
+推荐先创建独立 backlog 分支（会先同步 `main`）：
+
+```powershell
+pwsh .github/manual/scripts/start-backlog-issue.ps1 -Type task -Title "优化 issue 创建流程"
+```
+
+```bash
+sh .github/manual/scripts/start-backlog-issue.sh --type task --title "优化 issue 创建流程"
+```
+
 1. 读取本地 frontmatter（title/labels/body）
 2. 创建 GitHub Issue
 3. 自动回填本地状态和链接

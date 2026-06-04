@@ -73,14 +73,11 @@ def load_events(event_file: Path) -> list[dict[str, Any]]:
     return events
 
 
-def build_weekly_snapshot(
-    events: list[dict[str, Any]], period: str = "weekly"
-) -> dict[str, Any]:
+def build_weekly_snapshot(events: list[dict[str, Any]], period: str = "weekly") -> dict[str, Any]:
     """Aggregate issue execution events into a weekly snapshot."""
     grouped = _group_events_by_issue(events)
     issue_summaries = [
-        _summarize_issue(issue_number, attempts)
-        for issue_number, attempts in grouped.items()
+        _summarize_issue(issue_number, attempts) for issue_number, attempts in grouped.items()
     ]
 
     total_issues = len(issue_summaries)
@@ -90,9 +87,7 @@ def build_weekly_snapshot(
     gate_pass_count = sum(1 for item in issue_summaries if item["quality_gate_passed"])
 
     lead_times = [
-        item["lead_time_ms"]
-        for item in issue_summaries
-        if item["lead_time_ms"] is not None
+        item["lead_time_ms"] for item in issue_summaries if item["lead_time_ms"] is not None
     ]
     failure_counter = Counter(
         item["failure_category"]
@@ -121,29 +116,17 @@ def build_weekly_snapshot(
     return snapshot
 
 
-def compare_snapshots(
-    current: dict[str, Any], previous: dict[str, Any]
-) -> dict[str, float]:
+def compare_snapshots(current: dict[str, Any], previous: dict[str, Any]) -> dict[str, float]:
     """Compare two weekly snapshots and return KPI deltas."""
     current_summary = current.get("summary", {}) if isinstance(current, dict) else {}
     previous_summary = previous.get("summary", {}) if isinstance(previous, dict) else {}
 
     return {
-        "success_rate_delta_pp": _delta(
-            current_summary, previous_summary, "success_rate"
-        ),
-        "first_pass_rate_delta_pp": _delta(
-            current_summary, previous_summary, "first_pass_rate"
-        ),
-        "rework_rate_delta_pp": _delta(
-            current_summary, previous_summary, "rework_rate"
-        ),
-        "gate_pass_rate_delta_pp": _delta(
-            current_summary, previous_summary, "gate_pass_rate"
-        ),
-        "avg_lead_time_ms_delta": _delta(
-            current_summary, previous_summary, "avg_lead_time_ms"
-        ),
+        "success_rate_delta_pp": _delta(current_summary, previous_summary, "success_rate"),
+        "first_pass_rate_delta_pp": _delta(current_summary, previous_summary, "first_pass_rate"),
+        "rework_rate_delta_pp": _delta(current_summary, previous_summary, "rework_rate"),
+        "gate_pass_rate_delta_pp": _delta(current_summary, previous_summary, "gate_pass_rate"),
+        "avg_lead_time_ms_delta": _delta(current_summary, previous_summary, "avg_lead_time_ms"),
     }
 
 
@@ -214,9 +197,7 @@ def render_weekly_report(
 def write_json_snapshot(snapshot: dict[str, Any], output_file: Path) -> None:
     """Write a snapshot JSON file."""
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.write_text(
-        json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    output_file.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def write_markdown_report(report: str, output_file: Path) -> None:
@@ -240,9 +221,7 @@ def _group_events_by_issue(
     return grouped
 
 
-def _summarize_issue(
-    issue_number: int, attempts: list[dict[str, Any]]
-) -> dict[str, Any]:
+def _summarize_issue(issue_number: int, attempts: list[dict[str, Any]]) -> dict[str, Any]:
     final_event = attempts[-1]
     created_at = _parse_datetime(final_event.get("issue_created_at"))
     completed_at = _parse_datetime(final_event.get("completed_at"))
@@ -268,10 +247,7 @@ def _summarize_issue(
         "issue_title": str(final_event.get("issue_title", "")),
         "attempt_count": len(attempts),
         "success": success,
-        "first_pass": success
-        and pr_created
-        and quality_gate_passed
-        and len(attempts) == 1,
+        "first_pass": success and pr_created and quality_gate_passed and len(attempts) == 1,
         "reworked": len(attempts) > 1,
         "pr_created": pr_created,
         "quality_gate_passed": quality_gate_passed,
@@ -309,9 +285,7 @@ def _average(values: list[int]) -> float:
     return round(sum(values) / len(values), 2)
 
 
-def _delta(
-    current_summary: dict[str, Any], previous_summary: dict[str, Any], key: str
-) -> float:
+def _delta(current_summary: dict[str, Any], previous_summary: dict[str, Any], key: str) -> float:
     current_value = float(current_summary.get(key, 0.0))
     previous_value = float(previous_summary.get(key, 0.0))
     if key.endswith("_ms"):

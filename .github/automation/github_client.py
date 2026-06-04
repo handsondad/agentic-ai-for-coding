@@ -234,9 +234,7 @@ def _resolve_tls_verify() -> bool | str | ssl.SSLContext:
     """
     disable_verify = os.getenv("AUTOMATION_TLS_NO_VERIFY", "").strip().lower()
     if disable_verify in {"1", "true", "yes"}:
-        logger.warning(
-            "AUTOMATION_TLS_NO_VERIFY is enabled; TLS verification is disabled."
-        )
+        logger.warning("AUTOMATION_TLS_NO_VERIFY is enabled; TLS verification is disabled.")
         return False
 
     ca_bundle = os.getenv("AUTOMATION_CA_BUNDLE", "").strip()

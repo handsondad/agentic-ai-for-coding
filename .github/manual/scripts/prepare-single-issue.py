@@ -89,12 +89,8 @@ def main() -> None:
     """CLI entrypoint."""
     parser = argparse.ArgumentParser(description="Prepare a single issue workspace")
     parser.add_argument("--workflow", default="WORKFLOW.md", help="Path to WORKFLOW.md")
-    parser.add_argument(
-        "--issue-number", type=int, default=0, help="GitHub issue number"
-    )
-    parser.add_argument(
-        "--issue-file", default="", help="Local issue/backlog markdown path"
-    )
+    parser.add_argument("--issue-number", type=int, default=0, help="GitHub issue number")
+    parser.add_argument("--issue-file", default="", help="Local issue/backlog markdown path")
 
     args = parser.parse_args()
 
@@ -109,18 +105,14 @@ def main() -> None:
     if args.issue_number:
         prepared = asyncio.run(_prepare_remote_issue(settings, args.issue_number))
     else:
-        prepared = asyncio.run(
-            _prepare_local_issue(settings, Path(args.issue_file).resolve())
-        )
+        prepared = asyncio.run(_prepare_local_issue(settings, Path(args.issue_file).resolve()))
 
     print(f"Prepared source: {prepared.source}")
     print(f"Issue title: {prepared.issue.title}")
     print(f"Branch: {prepared.branch_name}")
     print(f"Worktree: {prepared.worktree_path}")
     print(f"Prompt: {prepared.prompt_path}")
-    print(
-        "Next step: open the worktree with your code agent and execute the prompt file."
-    )
+    print("Next step: open the worktree with your code agent and execute the prompt file.")
 
 
 def _load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
@@ -196,14 +188,10 @@ async def _prepare_remote_issue(
     settings: RuntimeSettings,
     issue_number: int,
 ) -> PreparedIssueContext:
-    issue = await _fetch_issue(
-        settings.github_token, settings.github_repo, issue_number
-    )
+    issue = await _fetch_issue(settings.github_token, settings.github_repo, issue_number)
     if issue is None:
         raise PrepareIssueError(f"Issue not found: #{issue_number}")
-    return await _prepare_issue_context(
-        settings, issue, source=f"github:{issue.identifier}"
-    )
+    return await _prepare_issue_context(settings, issue, source=f"github:{issue.identifier}")
 
 
 async def _fetch_issue(token: str, repo: str, issue_number: int) -> GitHubIssue | None:
@@ -218,9 +206,7 @@ async def _fetch_issue(token: str, repo: str, issue_number: int) -> GitHubIssue 
     }
 
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.get(
-            f"{base_url}/issues/{issue_number}", headers=headers
-        )
+        response = await client.get(f"{base_url}/issues/{issue_number}", headers=headers)
 
     if response.status_code == 404:
         return None
@@ -272,9 +258,7 @@ async def _prepare_issue_context(
     issue: GitHubIssue,
     source: str,
 ) -> PreparedIssueContext:
-    issue_key = (
-        str(issue.number) if issue.number > 0 else f"local-{_slugify(issue.title, 16)}"
-    )
+    issue_key = str(issue.number) if issue.number > 0 else f"local-{_slugify(issue.title, 16)}"
     branch_name = f"ai/issue-{issue_key}-{_slugify(issue.title, 36)}"
     worktree_path = settings.workspace_root / f"issue-{issue_key}"
 
@@ -296,9 +280,7 @@ async def _prepare_issue_context(
     )
 
 
-async def _prepare_worktree(
-    settings: RuntimeSettings, path: Path, branch_name: str
-) -> None:
+async def _prepare_worktree(settings: RuntimeSettings, path: Path, branch_name: str) -> None:
     await _run_git(
         ["git", "fetch", "origin", settings.base_branch],
         cwd=settings.repo_root,
@@ -388,9 +370,7 @@ def _load_local_issue(path: Path) -> GitHubIssue:
         body = text
 
     if not isinstance(meta, dict):
-        raise PrepareIssueError(
-            "Local issue front matter must be an object when present"
-        )
+        raise PrepareIssueError("Local issue front matter must be an object when present")
 
     title = str(meta.get("title", "")).strip() or _extract_title_from_body(body, path)
     labels = _normalize_labels(meta.get("labels"))
