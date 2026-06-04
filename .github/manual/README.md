@@ -86,8 +86,25 @@
 ## 建议约束
 
 - 发布 backlog 前，建议先提交 backlog 分支，确保提单改动可追溯。
-- 若脚本提示工作区不干净，先提交或暂存后再创建 backlog 分支。
+- 若脚本提示工作区不干净，优先提交或暂存后再创建 backlog 分支。
+- 若你明确需要在当前未提交改动基础上继续，可显式传入：
+  - PowerShell: `pwsh .github/manual/scripts/start-backlog-issue.ps1 -Type task -Title "..." -AllowDirty`
+  - Python: `python .github/manual/scripts/start-backlog-issue.py --type task --title "..." --allow-dirty`
 - `--dry-run` 可用于预览分支名和文件路径，不会修改 git 状态。
+
+## 无 Issue 阻断策略
+
+为避免“先改代码再补 Issue”的流程违规，手动质量门禁已内置阻断检查：
+
+- 必须在 `ai/issue-*` 分支执行。
+- 当前目录必须存在 `.manual/issue-prompt.md`（说明已完成 issue 准备）。
+- 不满足时直接中断，并提示先走 `start-backlog-issue -> publish-backlog-issue -> prepare-single-issue`。
+
+仅排障时可临时绕过（不建议常态使用）：
+
+```powershell
+$env:MANUAL_ALLOW_NO_ISSUE = "true"
+```
 
 ## 快速配置示例（PowerShell）
 

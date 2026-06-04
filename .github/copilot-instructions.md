@@ -207,6 +207,14 @@ Closes #42
 
 6. **文档同步**：涉及流程行为变化（脚本入口、默认策略、审核边界）时，必须同步更新 `README.md` 或 `WORKFLOW.md`。
 
+7. **手动模式先建 Issue 再实现（阻断）**：
+        - 在手动模式下，若用户直接要求“修 bug / 改代码”但未提供 issue 编号、issue 链接或 backlog 文件，Agent 必须先阻断实现。
+        - Agent 必须先提示并引导用户执行：
+            1) `start-backlog-issue` 创建本地 backlog 草稿
+            2) `publish-backlog-issue` 发布到 GitHub
+            3) `prepare-single-issue` 准备实现工作区
+        - 完成以上步骤前，不得进入代码实现与修复阶段。
+
 ## Issue 创建规范（强制）
 
 当用户要求“创建一个新 issue”时，必须遵循以下顺序：

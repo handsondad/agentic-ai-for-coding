@@ -11,6 +11,7 @@ param(
     [string]$OutputRoot = ".github/issues-backlog",
     [string]$Template = ".github/issues-backlog/TEMPLATE.md",
     [switch]$DryRun,
+    [switch]$AllowDirty,
     [string]$PythonExe = "python"
 )
 
@@ -37,6 +38,9 @@ if ($Slug) {
 }
 if ($DryRun) {
     $cmd += "--dry-run"
+}
+if ($AllowDirty) {
+    $cmd += "--allow-dirty"
 }
 
 & $PythonExe $cmd

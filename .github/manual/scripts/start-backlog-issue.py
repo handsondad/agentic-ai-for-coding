@@ -40,6 +40,7 @@ class StartOptions:
     output_root: Path
     template_path: Path
     dry_run: bool
+    allow_dirty: bool
 
 
 @dataclass(slots=True)
@@ -79,6 +80,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-root", default=".github/issues-backlog")
     parser.add_argument("--template", default=".github/issues-backlog/TEMPLATE.md")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="Allow branch creation even when working tree has uncommitted changes",
+    )
     return parser.parse_args()
 
 
@@ -98,7 +104,12 @@ def ensure_clean_worktree(repo_root: Path) -> None:
     if result.exit_code != 0:
         raise StartBacklogError(f"git status failed: {result.output}")
     if result.output.strip():
-        raise StartBacklogError("Working tree has uncommitted changes; commit or stash first")
+        details = result.output.strip()
+        raise StartBacklogError(
+            "Working tree has uncommitted changes; commit/stash first, "
+            "or re-run with --allow-dirty.\n"
+            f"Changed files:\n{details}"
+        )
 
 
 def slugify(text: str, max_length: int = 48) -> str:
@@ -194,7 +205,7 @@ def sync_base_and_create_branch(repo_root: Path, options: StartOptions) -> str:
 
 def start_backlog_issue(repo_root: Path, options: StartOptions) -> StartResult:
     """Execute backlog issue startup workflow."""
-    if not options.dry_run:
+    if not options.dry_run and not options.allow_dirty:
         ensure_clean_worktree(repo_root)
 
     relative_dir = Path(options.output_root) / options.issue_type / options.date_token
@@ -241,6 +252,7 @@ def main() -> None:
         output_root=Path(args.output_root),
         template_path=Path(args.template),
         dry_run=args.dry_run,
+        allow_dirty=args.allow_dirty,
     )
 
     try:
