@@ -1,5 +1,5 @@
 ---
-title: '历史提交追溯：2026-05-28~2026-05-29 初始化与模板变更（PR #1~#5）'
+title: '初始化与模板变更（PR #1~#5）'
 type: task
 status: published
 labels:
@@ -75,45 +75,3 @@ github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/24
 - PR 合并后需在描述中显式关联 issue 编号。
 
 ---
-
-## 类型化正文（按 type 选择并完善）
-
-### feature 结构（对齐 `.github/ISSUE_TEMPLATE/feature.yml`）
-
-#### 用户故事
-作为...，我希望...，以便...
-
-#### 验收标准
-- [ ] 
-
-#### 技术规格（可选）
-
-#### 背景与上下文
-
-### bug 结构（对齐 `.github/ISSUE_TEMPLATE/bug.yml`）
-
-#### Bug 描述
-
-#### 复现步骤
-1. 
-2. 
-
-#### 期望行为
-
-#### 实际行为
-
-#### 环境信息
-
-#### 相关日志
-
-### task 结构（对齐 `.github/ISSUE_TEMPLATE/task.yml`）
-
-#### 任务类型
-
-#### 背景与动机
-
-#### 任务范围
-
-#### 完成标准
-
-#### 技术说明（可选）

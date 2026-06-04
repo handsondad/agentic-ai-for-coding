@@ -1,5 +1,5 @@
 ---
-title: 历史提交追溯：2026-06-02 自动化基础与流程强化（含 direct commits）
+title: 自动化基础与流程强化（含 direct commits）
 type: task
 status: published
 labels:
@@ -76,45 +76,3 @@ github_issue_url: https://github.com/handsondad/agentic-ai-for-coding/issues/25
 - 若已有 issue，commit message 建议带 `refs #<issue>`。
 
 ---
-
-## 类型化正文（按 type 选择并完善）
-
-### feature 结构（对齐 `.github/ISSUE_TEMPLATE/feature.yml`）
-
-#### 用户故事
-作为...，我希望...，以便...
-
-#### 验收标准
-- [ ] 
-
-#### 技术规格（可选）
-
-#### 背景与上下文
-
-### bug 结构（对齐 `.github/ISSUE_TEMPLATE/bug.yml`）
-
-#### Bug 描述
-
-#### 复现步骤
-1. 
-2. 
-
-#### 期望行为
-
-#### 实际行为
-
-#### 环境信息
-
-#### 相关日志
-
-### task 结构（对齐 `.github/ISSUE_TEMPLATE/task.yml`）
-
-#### 任务类型
-
-#### 背景与动机
-
-#### 任务范围
-
-#### 完成标准
-
-#### 技术说明（可选）
