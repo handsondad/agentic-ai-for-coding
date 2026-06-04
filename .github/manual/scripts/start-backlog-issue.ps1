@@ -5,6 +5,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Title,
     [string]$Date = "",
+    [string]$FolderDate = "",
     [string]$Slug = "",
     [string]$BaseBranch = "main",
     [string]$BranchPrefix = "backlog",
@@ -32,6 +33,9 @@ $cmd = @(
 
 if ($Date) {
     $cmd += @("--date", $Date)
+}
+if ($FolderDate) {
+    $cmd += @("--folder-date", $FolderDate)
 }
 if ($Slug) {
     $cmd += @("--slug", $Slug)

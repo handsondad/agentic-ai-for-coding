@@ -13,6 +13,7 @@ from typing import Any
 import yaml
 
 _FRONT_MATTER_PATTERN = re.compile(r"^\ufeff?---\s*\n(.*?)\n---\s*\n?(.*)$", re.DOTALL)
+_BACKFILL_PREFIX_PATTERN = re.compile(r"^backfill-\d{8}(?:-\d{8})?-")
 
 
 class StartBacklogError(RuntimeError):
@@ -34,6 +35,7 @@ class StartOptions:
     issue_type: str
     title: str
     date_token: str
+    folder_date_token: str
     slug: str
     base_branch: str
     branch_prefix: str
@@ -74,6 +76,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--type", required=True, choices=["feature", "bug", "task"])
     parser.add_argument("--title", required=True)
     parser.add_argument("--date", default="", help="YYYYMMDD, default is today")
+    parser.add_argument(
+        "--folder-date",
+        default="",
+        help="YYYYMMDD folder token for backlog path, defaults to --date",
+    )
     parser.add_argument("--slug", default="", help="Custom file slug, default from title")
     parser.add_argument("--base-branch", default="main")
     parser.add_argument("--branch-prefix", default="backlog")
@@ -119,6 +126,14 @@ def slugify(text: str, max_length: int = 48) -> str:
         normalized = normalized.replace("--", "-")
     normalized = normalized.strip("-") or "issue"
     return normalized[:max_length].strip("-") or "issue"
+
+
+def normalize_slug(raw: str, max_length: int = 64) -> str:
+    """Normalize slug and remove legacy backfill date prefix when present."""
+    cleaned = raw.strip().lower()
+    if cleaned.startswith("backfill-"):
+        cleaned = _BACKFILL_PREFIX_PATTERN.sub("", cleaned)
+    return slugify(cleaned or "issue", max_length=max_length)
 
 
 def normalize_date_token(raw: str) -> str:
@@ -208,7 +223,7 @@ def start_backlog_issue(repo_root: Path, options: StartOptions) -> StartResult:
     if not options.dry_run and not options.allow_dirty:
         ensure_clean_worktree(repo_root)
 
-    relative_dir = Path(options.output_root) / options.issue_type / options.date_token
+    relative_dir = Path(options.output_root) / options.issue_type / options.folder_date_token
     backlog_dir = (repo_root / relative_dir).resolve()
     backlog_dir.mkdir(parents=True, exist_ok=True)
 
@@ -240,12 +255,14 @@ def main() -> None:
         raise SystemExit("--title cannot be empty")
 
     date_token = normalize_date_token(args.date)
-    slug = slugify(args.slug.strip() or title, max_length=64)
+    folder_date_token = normalize_date_token(args.folder_date) if args.folder_date else date_token
+    slug = normalize_slug(args.slug.strip() or title, max_length=64)
 
     options = StartOptions(
         issue_type=args.type,
         title=title,
         date_token=date_token,
+        folder_date_token=folder_date_token,
         slug=slug,
         base_branch=args.base_branch.strip() or "main",
         branch_prefix=args.branch_prefix.strip() or "backlog",
