@@ -111,7 +111,7 @@ class CeleryDispatchService:
         while True:
             try:
                 await self.run_once()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.exception("celery-mode: 调度循环失败 err=%s", exc)
 
             await asyncio.sleep(self._settings.poll_interval_ms / 1000)
@@ -161,7 +161,7 @@ def build_dependency_levels(issues: list[GitHubIssue]) -> list[list[GitHubIssue]
     return levels
 
 
-def _build_issue_signature(issue_number: int, workflow_path: str):
+def _build_issue_signature(issue_number: int, workflow_path: str) -> Any:
     try:
         from .celery_tasks import run_issue_task
     except ImportError:
@@ -186,9 +186,7 @@ def _sort_key(issue: GitHubIssue) -> tuple[datetime, int]:
 
 def _require_celery() -> None:
     if group is None:
-        raise CeleryDispatcherError(
-            "未安装 celery，请先安装: pip install celery[redis]"
-        )
+        raise CeleryDispatcherError("未安装 celery，请先安装: pip install celery[redis]")
 
 
 def _resolve_base_head(settings: RuntimeSettings) -> Any:
@@ -271,7 +269,9 @@ def _save_dispatch_state(path: Path, state: dict[str, Any]) -> None:
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _should_dispatch_issue(issue: GitHubIssue, base_head: str | None, state: dict[str, Any]) -> bool:
+def _should_dispatch_issue(
+    issue: GitHubIssue, base_head: str | None, state: dict[str, Any]
+) -> bool:
     issues_state = state.get("issues")
     if not isinstance(issues_state, dict):
         return True

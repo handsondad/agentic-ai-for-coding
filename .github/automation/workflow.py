@@ -201,7 +201,6 @@ def _render_hook_template(raw: Any, repo_root: Path, base_branch: str) -> str | 
     if value is None:
         return None
 
-    return (
-        value.replace("{{ repo_root }}", repo_root.as_posix())
-        .replace("{{ base_branch }}", base_branch)
+    return value.replace("{{ repo_root }}", repo_root.as_posix()).replace(
+        "{{ base_branch }}", base_branch
     )

@@ -98,7 +98,7 @@ async def _run_issue_async(issue_number: int, workflow_path: str) -> dict[str, A
             failure_message=str(exc),
         )
         raise
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         await _safe_comment(
             github,
             issue.number,
@@ -150,21 +150,21 @@ async def _run_issue_async(issue_number: int, workflow_path: str) -> dict[str, A
 async def _safe_add_labels(github: GitHubClient, issue_number: int, labels: list[str]) -> None:
     try:
         await github.add_labels(issue_number, labels)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("issue=%s add_labels failed labels=%s err=%s", issue_number, labels, exc)
 
 
 async def _safe_remove_label(github: GitHubClient, issue_number: int, label: str) -> None:
     try:
         await github.remove_label(issue_number, label)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("issue=%s remove_label failed label=%s err=%s", issue_number, label, exc)
 
 
 async def _safe_comment(github: GitHubClient, issue_number: int, body: str) -> None:
     try:
         await github.comment_issue(issue_number, body)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("issue=%s comment failed err=%s", issue_number, exc)
 
 
@@ -217,5 +217,5 @@ async def _record_metrics_event(
 
     try:
         await asyncio.to_thread(append_event, settings.metrics_file, event)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("issue=%s metrics write failed err=%s", issue.number, exc)

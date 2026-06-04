@@ -77,8 +77,7 @@ def build_weekly_snapshot(events: list[dict[str, Any]], period: str = "weekly") 
     """Aggregate issue execution events into a weekly snapshot."""
     grouped = _group_events_by_issue(events)
     issue_summaries = [
-        _summarize_issue(issue_number, attempts)
-        for issue_number, attempts in grouped.items()
+        _summarize_issue(issue_number, attempts) for issue_number, attempts in grouped.items()
     ]
 
     total_issues = len(issue_summaries)
@@ -88,9 +87,7 @@ def build_weekly_snapshot(events: list[dict[str, Any]], period: str = "weekly") 
     gate_pass_count = sum(1 for item in issue_summaries if item["quality_gate_passed"])
 
     lead_times = [
-        item["lead_time_ms"]
-        for item in issue_summaries
-        if item["lead_time_ms"] is not None
+        item["lead_time_ms"] for item in issue_summaries if item["lead_time_ms"] is not None
     ]
     failure_counter = Counter(
         item["failure_category"]
@@ -178,9 +175,7 @@ def render_weekly_report(
     lines.extend(["", "## Top 3 Blockers"])
     if blockers:
         for item in blockers[:3]:
-            lines.append(
-                f"- {item['category']}: {item['count']} ({item['share']}%)"
-            )
+            lines.append(f"- {item['category']}: {item['count']} ({item['share']}%)")
     else:
         lines.append("- no blockers recorded")
 
