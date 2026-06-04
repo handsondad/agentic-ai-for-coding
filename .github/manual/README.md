@@ -91,6 +91,10 @@
   - PowerShell: `pwsh .github/manual/scripts/start-backlog-issue.ps1 -Type task -Title "..." -AllowDirty`
   - Python: `python .github/manual/scripts/start-backlog-issue.py --type task --title "..." --allow-dirty`
 - `--dry-run` 可用于预览分支名和文件路径，不会修改 git 状态。
+- 历史追溯场景建议显式指定日期目录：
+  - PowerShell: `pwsh .github/manual/scripts/start-backlog-issue.ps1 -Type task -Title "..." -Date 20260603 -FolderDate 20260603`
+  - Python: `python .github/manual/scripts/start-backlog-issue.py --type task --title "..." --date 20260603 --folder-date 20260603`
+- `start-backlog-issue` 会自动清理 `backfill-YYYYMMDD-` 或 `backfill-YYYYMMDD-YYYYMMDD-` 的 slug 前缀，避免文件名重复带日期。
 
 ## 无 Issue 阻断策略
 
