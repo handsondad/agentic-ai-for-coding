@@ -524,15 +524,16 @@ pwsh .github/automation/scripts/init-automation-env.ps1 -Force
 1. 选择单个来源：
   - GitHub issue 编号
   - 本地 backlog/markdown 文件
-2. 生成独立 worktree 和 `.automation/issue-prompt.md`
+2. 生成独立 worktree 和 `.manual/issue-prompt.md`
 3. 用任意 code agent 工具在该 worktree 中继续开发
-4. 按 prompt 要求完成分支开发、测试、代码检查、提交和提 PR
-5. 用户只在 PR 阶段进行最终审核
+4. 提交前执行严格质量门禁（Ruff format/lint、mypy、pytest）
+5. 按 prompt 要求完成分支开发、测试、代码检查、提交和提 PR
+6. 用户只在 PR 阶段进行最终审核
 
 Windows PowerShell：
 
 说明：
-- `prepare-single-issue.ps1` 会优先读取当前进程环境变量；若未设置，会回退读取 Windows User 级别的 `GITHUB_TOKEN`、`GITHUB_REPOSITORY`、`AUTOMATION_CA_BUNDLE`、`AUTOMATION_TLS_NO_VERIFY`。
+- `prepare-single-issue.ps1` 会优先读取当前进程环境变量；若未设置，会回退读取 Windows User 级别的 `GITHUB_TOKEN`、`GITHUB_REPOSITORY`。
 - 当前 `WORKFLOW.md` 里的默认 hooks 已切换为跨平台 Python helper，并通过 `{{ repo_root }}` 渲染为主仓库绝对路径；Windows 与 Unix-like 环境会执行同一套 hook 逻辑，不再依赖 Git Bash。
 - 一次真实试跑记录见 `docs/automation-runner-e2e-report.md`。
 
@@ -549,6 +550,10 @@ Linux/macOS：
 ```bash
 sh .github/manual/scripts/prepare-single-issue.sh --issue-number 6
 sh .github/manual/scripts/prepare-single-issue.sh --issue-file .github/issues-backlog/task/20260602/validate-automation-runner-e2e.md
+
+# 手动模式质量门禁（严格）
+pwsh .github/manual/scripts/run-quality-gate.ps1 -Mode full
+sh .github/manual/scripts/run-quality-gate.sh --mode full
 ```
 
 这个入口只负责“单 issue 准备”，不会批量轮询，也不会自动处理整组 issue。
@@ -570,7 +575,8 @@ export AUTOMATION_AGENT_COMMAND='powershell -NoProfile -ExecutionPolicy Bypass -
 export AUTOMATION_ADAPTER_BACKEND_COMMAND='your-agent-cli --workspace "{workspace}" --prompt-file "{prompt}"'
 
 # 可选：覆盖质量门禁，多个命令用 ;; 分隔
-export AUTOMATION_QUALITY_COMMANDS='make lint;;make test'
+# 默认即严格门禁：python .github/automation/scripts/quality-gate.py --mode full
+export AUTOMATION_QUALITY_COMMANDS='python .github/automation/scripts/quality-gate.py --mode full'
 
 # 可选：企业网络证书配置（推荐使用 CA 证书）
 export AUTOMATION_CA_BUNDLE='/path/to/corporate-ca.pem'

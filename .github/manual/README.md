@@ -14,6 +14,19 @@
   - 将本地 backlog Markdown 发布为 GitHub Issue。
   - 自动回填本地 front matter 的 issue 编号与 URL。
 
+- `scripts/run-quality-gate.py|.ps1|.sh`
+  - 手动模式下的本地质量门禁入口。
+  - 默认执行严格检查（`full`）：Ruff 格式检查、Ruff Lint、mypy、unit test、integration test。
+
+## 推荐流程（手动模式）
+
+1. 先执行 `prepare-single-issue` 准备工作区和 prompt。
+2. 在 worktree 中完成代码实现。
+3. 提交前强制执行质量门禁：
+   - Windows: `pwsh .github/manual/scripts/run-quality-gate.ps1 -Mode full`
+   - Linux/macOS: `sh .github/manual/scripts/run-quality-gate.sh --mode full`
+4. 通过后再执行 commit / push / PR。
+
 ## 边界约定
 
 - `.github/automation/` 仅用于 Celery 批处理自动化。

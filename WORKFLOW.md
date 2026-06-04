@@ -136,7 +136,7 @@ codex:
 
 3. **自检清单**：
    - [ ] 所有测试通过（`make test`）
-   - [ ] 代码格式符合规范（`make lint`）
+  - [ ] 严格质量门禁通过（`python .github/automation/scripts/quality-gate.py --mode full`）
    - [ ] 没有引入新的安全漏洞
    - [ ] PR 描述清晰完整
 

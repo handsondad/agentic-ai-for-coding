@@ -161,3 +161,32 @@ prompt
     assert settings.celery_broker_url == "redis://localhost:6380/0"
     assert settings.celery_result_backend == "redis://localhost:6380/1"
     assert settings.celery_queue == "issue_jobs"
+
+
+def test_load_runtime_settings_uses_strict_default_quality_command(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """未显式覆盖时应使用严格质量门禁默认命令。"""
+    workflow = tmp_path / "WORKFLOW.md"
+    workflow.write_text(
+        """---
+tracker:
+  kind: github
+  api_key: $GITHUB_TOKEN
+  repo: $GITHUB_REPOSITORY
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("GITHUB_TOKEN", "ghp_test_value")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
+    monkeypatch.delenv("AUTOMATION_QUALITY_COMMANDS", raising=False)
+
+    settings = load_runtime_settings(workflow)
+
+    assert settings.quality_commands == [
+        "python .github/automation/scripts/quality-gate.py --mode full"
+    ]

@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import re
+import subprocess
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 try:
     from celery import group
@@ -24,6 +28,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 _DEPENDS_ON_PATTERN = re.compile(r"depends\s+on:\s*#(\d+)", re.IGNORECASE)
+_DISPATCH_STATE_REL_PATH = ".automation/dispatch-state.json"
 
 
 class CeleryDispatcherError(RuntimeError):
@@ -44,6 +49,10 @@ class CeleryDispatchService:
         """执行单次调度，并按依赖分层投递任务。"""
         _require_celery()
 
+        base_head = await _resolve_base_head(self._settings)
+        state_path = self._settings.repo_root / _DISPATCH_STATE_REL_PATH
+        dispatch_state = _load_dispatch_state(state_path)
+
         issues = await self._github.list_candidate_issues(
             active_labels=self._settings.active_labels,
             terminal_labels=self._settings.terminal_labels,
@@ -51,6 +60,15 @@ class CeleryDispatchService:
         candidates = [issue for issue in issues if _is_ready(issue)]
         if not candidates:
             logger.info("celery-mode: 未发现 ai-ready issue")
+            return
+
+        candidates = [
+            issue
+            for issue in candidates
+            if _should_dispatch_issue(issue, base_head=base_head, state=dispatch_state)
+        ]
+        if not candidates:
+            logger.info("celery-mode: ai-ready issue 未检测到更新，跳过本轮")
             return
 
         levels = build_dependency_levels(candidates)
@@ -80,6 +98,13 @@ class CeleryDispatchService:
                 raise CeleryDispatcherError(
                     f"level={index} 执行失败，已停止后续依赖层调度 failed={failed}"
                 )
+
+            _record_dispatched_issues(
+                state=dispatch_state,
+                issues=level,
+                base_head=base_head,
+            )
+            _save_dispatch_state(state_path, dispatch_state)
 
     async def run_forever(self) -> None:
         """循环执行调度。"""
@@ -164,3 +189,124 @@ def _require_celery() -> None:
         raise CeleryDispatcherError(
             "未安装 celery，请先安装: pip install celery[redis]"
         )
+
+
+def _resolve_base_head(settings: RuntimeSettings) -> Any:
+    async def _runner() -> str | None:
+        skip_fetch = os.getenv("AUTOMATION_SKIP_GIT_FETCH", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+        }
+        if not skip_fetch:
+            fetch_result = await asyncio.to_thread(
+                _run_process,
+                ["git", "fetch", "origin", settings.base_branch],
+                settings.repo_root,
+            )
+            if fetch_result.returncode != 0:
+                logger.warning(
+                    "celery-mode: 获取远端分支失败 branch=%s output=%s",
+                    settings.base_branch,
+                    fetch_result.output.strip(),
+                )
+
+        rev_parse_result = await asyncio.to_thread(
+            _run_process,
+            ["git", "rev-parse", f"origin/{settings.base_branch}"],
+            settings.repo_root,
+        )
+        if rev_parse_result.returncode != 0:
+            logger.warning(
+                "celery-mode: 读取分支头失败 branch=%s output=%s",
+                settings.base_branch,
+                rev_parse_result.output.strip(),
+            )
+            return None
+        value = rev_parse_result.output.strip()
+        return value or None
+
+    return _runner()
+
+
+class _ProcessResult:
+    def __init__(self, returncode: int, output: str) -> None:
+        self.returncode = returncode
+        self.output = output
+
+
+def _run_process(args: list[str], cwd: Path) -> _ProcessResult:
+    process = subprocess.run(  # noqa: S603
+        args,
+        cwd=str(cwd),
+        capture_output=True,
+        text=True,
+        check=False,
+        encoding="utf-8",
+        errors="replace",
+    )
+    output = (process.stdout or "") + (process.stderr or "")
+    return _ProcessResult(returncode=process.returncode, output=output)
+
+
+def _load_dispatch_state(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {"issues": {}}
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {"issues": {}}
+
+    if not isinstance(payload, dict):
+        return {"issues": {}}
+    issues = payload.get("issues")
+    if not isinstance(issues, dict):
+        payload["issues"] = {}
+    return payload
+
+
+def _save_dispatch_state(path: Path, state: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _should_dispatch_issue(issue: GitHubIssue, base_head: str | None, state: dict[str, Any]) -> bool:
+    issues_state = state.get("issues")
+    if not isinstance(issues_state, dict):
+        return True
+
+    entry = issues_state.get(str(issue.number))
+    if not isinstance(entry, dict):
+        return True
+
+    current_issue_updated = issue.updated_at.isoformat() if issue.updated_at else ""
+    recorded_issue_updated = str(entry.get("issue_updated_at", "")).strip()
+    if current_issue_updated and current_issue_updated != recorded_issue_updated:
+        return True
+
+    if base_head:
+        recorded_base_head = str(entry.get("base_head", "")).strip()
+        if recorded_base_head != base_head:
+            return True
+
+    return False
+
+
+def _record_dispatched_issues(
+    state: dict[str, Any],
+    issues: list[GitHubIssue],
+    base_head: str | None,
+) -> None:
+    issues_state = state.get("issues")
+    if not isinstance(issues_state, dict):
+        issues_state = {}
+        state["issues"] = issues_state
+
+    now = datetime.now(tz=UTC).isoformat()
+    for issue in issues:
+        issues_state[str(issue.number)] = {
+            "issue_updated_at": issue.updated_at.isoformat() if issue.updated_at else "",
+            "base_head": base_head or "",
+            "last_dispatched_at": now,
+        }

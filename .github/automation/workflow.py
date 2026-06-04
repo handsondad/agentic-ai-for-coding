@@ -50,7 +50,10 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
         workspace_root = repo_root / ".worktrees"
 
     quality_commands = _parse_quality_commands(
-        os.getenv("AUTOMATION_QUALITY_COMMANDS", "make lint;;make test")
+        os.getenv(
+            "AUTOMATION_QUALITY_COMMANDS",
+            "python .github/automation/scripts/quality-gate.py --mode full",
+        )
     )
     agent_command = _opt_str(os.getenv("AUTOMATION_AGENT_COMMAND"))
     base_branch = os.getenv("GITHUB_BASE_BRANCH", "main").strip() or "main"
@@ -179,7 +182,7 @@ def _as_label_list(value: Any) -> list[str]:
 
 def _parse_quality_commands(raw: str) -> list[str]:
     commands = [item.strip() for item in raw.split(";;") if item.strip()]
-    return commands or ["make lint", "make test"]
+    return commands or ["python .github/automation/scripts/quality-gate.py --mode full"]
 
 
 def _parse_bool(raw: str) -> bool:
