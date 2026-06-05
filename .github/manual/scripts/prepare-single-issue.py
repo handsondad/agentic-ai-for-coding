@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import re
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import httpx
 import yaml
 
 _FRONT_MATTER_PATTERN = re.compile(r"^\ufeff?---\s*\n(.*?)\n---\s*\n?(.*)$", re.DOTALL)
@@ -137,7 +138,7 @@ def _load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     repo_root = Path(os.getenv("MANUAL_REPO_ROOT", os.getcwd())).resolve()
     workspace_root = _resolve_workspace_root(front_matter, repo_root)
 
-    token = _resolve_env_like(_required_str(tracker, "api_key", "tracker.api_key"))
+    token = _resolve_optional_env_like(tracker.get("api_key"))
     repo = _resolve_env_like(_required_str(tracker, "repo", "tracker.repo"))
     base_branch = os.getenv("GITHUB_BASE_BRANCH", "main").strip() or "main"
 
@@ -184,34 +185,61 @@ def _resolve_env_like(value: str) -> str:
     return env_value
 
 
+def _resolve_optional_env_like(value: Any) -> str:
+    if not isinstance(value, str) or not value.strip():
+        return ""
+    raw = value.strip()
+    if not raw.startswith("$"):
+        return raw
+    env_name = raw[1:]
+    return (os.getenv(env_name) or "").strip()
+
+
 async def _prepare_remote_issue(
     settings: RuntimeSettings,
     issue_number: int,
 ) -> PreparedIssueContext:
-    issue = await _fetch_issue(settings.github_token, settings.github_repo, issue_number)
+    issue = await _fetch_issue(settings.github_repo, issue_number)
     if issue is None:
         raise PrepareIssueError(f"Issue not found: #{issue_number}")
     return await _prepare_issue_context(settings, issue, source=f"github:{issue.identifier}")
 
 
-async def _fetch_issue(token: str, repo: str, issue_number: int) -> GitHubIssue | None:
+async def _fetch_issue(repo: str, issue_number: int) -> GitHubIssue | None:
     if "/" not in repo:
         raise PrepareIssueError("tracker.repo 必须是 owner/repo 格式")
 
-    base_url = f"https://api.github.com/repos/{repo}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        raise PrepareIssueError("gh CLI not found in PATH")
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.get(f"{base_url}/issues/{issue_number}", headers=headers)
+    result = await asyncio.to_thread(
+        _exec_process,
+        [
+            gh_path,
+            "issue",
+            "view",
+            str(issue_number),
+            "--repo",
+            repo,
+            "--json",
+            "number,title,body,state,url,labels",
+        ],
+        Path.cwd(),
+    )
 
-    if response.status_code == 404:
-        return None
-    response.raise_for_status()
-    payload = response.json()
+    if result.returncode != 0:
+        output = (result.stdout or "") + (result.stderr or "")
+        lowered = output.casefold()
+        if "could not resolve to an issue" in lowered or "not found" in lowered:
+            return None
+        raise PrepareIssueError(f"gh issue view failed: {output}")
+
+    try:
+        payload = json.loads(result.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise PrepareIssueError(f"无法解析 gh issue view 输出: {exc}") from exc
+
     if not isinstance(payload, dict):
         return None
 
@@ -224,7 +252,7 @@ async def _fetch_issue(token: str, repo: str, issue_number: int) -> GitHubIssue 
 
     number = payload.get("number")
     title = payload.get("title")
-    html_url = payload.get("html_url")
+    html_url = payload.get("url")
     body = payload.get("body")
     state = payload.get("state")
 
@@ -343,6 +371,18 @@ def _exec_command(args: list[str], cwd: Path) -> _CommandResult:
     )
     output = (process.stdout or "") + (process.stderr or "")
     return _CommandResult(exit_code=process.returncode, stdout=output)
+
+
+def _exec_process(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(  # noqa: S603
+        args,
+        cwd=cwd,
+        text=True,
+        capture_output=True,
+        check=False,
+        encoding="utf-8",
+        errors="replace",
+    )
 
 
 def _slugify(text: str, max_length: int = 48) -> str:
