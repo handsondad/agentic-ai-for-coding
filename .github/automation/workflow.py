@@ -32,7 +32,15 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     hooks_map = _get_map(front_matter, "hooks", required=False)
     celery_map = _get_map(front_matter, "celery", required=False)
 
-    token = _resolve_env_like(_required_str(tracker, "api_key", "tracker.api_key"))
+    github_backend = _resolve_github_backend(
+        _opt_str(os.getenv("AUTOMATION_GITHUB_BACKEND"))
+        or _opt_str(tracker.get("backend"))
+        or "api"
+    )
+    if github_backend == "gh":
+        token = _resolve_optional_env_like(tracker.get("api_key"))
+    else:
+        token = _resolve_env_like(_required_str(tracker, "api_key", "tracker.api_key"))
     repo_raw = _resolve_env_like(_required_str(tracker, "repo", "tracker.repo"))
     repo = _parse_repo(repo_raw)
 
@@ -86,6 +94,7 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
 
     return RuntimeSettings(
         github_token=token,
+        github_backend=github_backend,
         github_repo=repo,
         active_labels=active_labels,
         terminal_labels=terminal_labels,
@@ -161,6 +170,23 @@ def _resolve_env_like(value: str, allow_missing: bool = False) -> str:
             return "."
         raise WorkflowParseError(f"环境变量未设置: {env_name}")
     return env_value
+
+
+def _resolve_optional_env_like(value: Any) -> str:
+    if not isinstance(value, str) or not value.strip():
+        return ""
+    raw = value.strip()
+    if not raw.startswith("$"):
+        return raw
+    env_name = raw[1:]
+    return (os.getenv(env_name) or "").strip()
+
+
+def _resolve_github_backend(value: str) -> str:
+    backend = value.strip().lower()
+    if backend not in {"api", "gh"}:
+        raise WorkflowParseError("tracker.backend 必须是 api 或 gh")
+    return backend
 
 
 def _parse_repo(value: str) -> GitHubRepo:

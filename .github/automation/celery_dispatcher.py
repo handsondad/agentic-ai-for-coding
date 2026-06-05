@@ -40,7 +40,11 @@ class CeleryDispatchService:
 
     def __init__(self, settings: RuntimeSettings) -> None:
         self._settings = settings
-        self._github = GitHubClient(token=settings.github_token, repo=settings.github_repo)
+        self._github = GitHubClient(
+            token=settings.github_token,
+            repo=settings.github_repo,
+            backend=settings.github_backend,
+        )
         os.environ["AUTOMATION_CELERY_BROKER_URL"] = settings.celery_broker_url
         os.environ["AUTOMATION_CELERY_RESULT_BACKEND"] = settings.celery_result_backend
         os.environ["AUTOMATION_CELERY_QUEUE"] = settings.celery_queue

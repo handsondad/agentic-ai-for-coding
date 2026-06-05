@@ -190,3 +190,51 @@ prompt
     assert settings.quality_commands == [
         "python .github/automation/scripts/quality-gate.py --mode full"
     ]
+
+
+def test_load_runtime_settings_supports_gh_backend_without_token(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """当 backend=gh 时，应允许不配置 tracker.api_key。"""
+    workflow = tmp_path / "WORKFLOW.md"
+    workflow.write_text(
+        """---
+tracker:
+  kind: github
+  backend: gh
+  repo: $GITHUB_REPOSITORY
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
+
+    settings = load_runtime_settings(workflow)
+
+    assert settings.github_backend == "gh"
+    assert settings.github_token == ""
+
+
+def test_load_runtime_settings_rejects_unknown_github_backend(
+    tmp_path: Path,
+) -> None:
+    """未知 backend 值应在加载阶段报错。"""
+    workflow = tmp_path / "WORKFLOW.md"
+    workflow.write_text(
+        """---
+tracker:
+  kind: github
+  backend: custom
+  api_key: token
+  repo: owner/repo
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(WorkflowParseError, match="tracker.backend"):
+        load_runtime_settings(workflow)

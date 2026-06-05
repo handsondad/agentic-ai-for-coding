@@ -111,6 +111,9 @@
   - 推荐配置。适配器实际调用的后端命令。
 - `AUTOMATION_QUALITY_COMMANDS`
   - 可选。覆盖默认质量门禁，多个命令用 `;;` 分隔。
+- `AUTOMATION_GITHUB_BACKEND`
+  - 可选。GitHub 访问后端，支持 `api`（默认）或 `gh`。
+  - 在企业证书链环境建议使用 `gh`，避免 Python TLS 信任链不一致导致的失败。
 - `AUTOMATION_WORKSPACE_ROOT`
   - 可选。worktree 根目录。
 - `AUTOMATION_REPO_ROOT`

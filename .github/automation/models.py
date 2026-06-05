@@ -34,6 +34,7 @@ class RuntimeSettings:
     """调度运行时设置。"""
 
     github_token: str
+    github_backend: str
     github_repo: GitHubRepo
     active_labels: list[str]
     terminal_labels: list[str]
