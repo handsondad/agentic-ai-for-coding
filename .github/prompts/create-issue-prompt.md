@@ -29,6 +29,26 @@
 3. 内容必须具体、可测试、可执行，避免空泛描述。
 4. 如信息不足，先列出“待补充信息”并给出最小可用草案。
 
+## SDD 文档输入模式（新增）
+
+当用户提供了 `docs/sdd/10-detailed-design/` 下的设计文档（例如 `UI-001-...md`）时，按“设计反向提单”方式输出：
+
+1. 从设计文档 front matter 读取并回填：
+  - `doc_id`
+  - `design_status`
+  - `issue_status`
+  - `issue_url`
+  - `owner`
+2. 从文档正文提炼 Issue 核心内容：
+  - 背景（来自“背景”）
+  - 需要做/不在范围（来自“目标与范围”）
+  - 验收标准（来自“验收标准”）
+3. 在 Issue 正文中增加 SDD 追踪字段：
+  - `SDD Doc`: 文档路径
+  - `SDD Doc ID`: doc_id
+4. 若文档缺少必要字段，先输出“待补充信息”，再给出可提交草案。
+5. 若用户要求直接发布，则沿用本 prompt 的自动发布流程，并在成功后提示把 `issue_url` 回填到设计文档与 `docs/sdd/sdd-index.md`。
+
 ## 模板映射
 
 ### 1) Feature（`.github/ISSUE_TEMPLATE/feature.yml`）

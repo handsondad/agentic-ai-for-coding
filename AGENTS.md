@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本文件是本仓库的统一 AI for Coding 入口。任意 code agent 进入仓库后，优先阅读本文件，再按文末索引跳到更细的规范和工作流文档。
+本文件是本仓库的统一入口。任意 code agent 进入仓库后，优先阅读本文件，再按文末索引跳到更细的规范和工作流文档。
 
 ## 1. 我们在做什么
 
@@ -69,8 +69,9 @@ PR 描述必须完整填写模板内容，尤其是：
 1. 读本文件。
 2. 读 [WORKFLOW.md](WORKFLOW.md)。
 3. 读 [.github/copilot-instructions.md](.github/copilot-instructions.md)。
-4. 读 [.github/pull_request_template.md](.github/pull_request_template.md)。
-5. 需要时查看 [.github/automation/](.github/automation/) 下的脚本与服务。
+4. 读 [docs/sdd/README.md](docs/sdd/README.md)（涉及复杂需求时）。
+5. 读 [.github/pull_request_template.md](.github/pull_request_template.md)。
+6. 需要时查看 [.github/automation/](.github/automation/) 下的脚本与服务。
 
 常用命令：
 
@@ -85,5 +86,8 @@ PR 描述必须完整填写模板内容，尤其是：
 - [.github/copilot-instructions.md](.github/copilot-instructions.md)：仓库级编码与自动化执行规范。
 - [.github/pull_request_template.md](.github/pull_request_template.md)：PR 描述模板。
 - [.github/automation/](.github/automation/)：自动化 runner、质量门禁、评估与指标脚本。
+- [docs/sdd/README.md](docs/sdd/README.md)：SDD 规范入口与文档协同方法。
+- [.github/prompts/create-doc-prompt.md](.github/prompts/create-doc-prompt.md)：创建/完善 SDD 设计文档的协同 Prompt。
+- [.github/prompts/create-issue-prompt.md](.github/prompts/create-issue-prompt.md)：基于设计文档反向生成 Issue 的 Prompt。
 - [docs/dev-guide.md](docs/dev-guide.md)：本地开发和验证入口。
 - [docs/ai-coding-infra-executable-blueprint.md](docs/ai-coding-infra-executable-blueprint.md)：基础设施蓝图与任务路线图。

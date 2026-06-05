@@ -69,15 +69,21 @@ codex:
 1. **阅读现有代码**：先理解项目架构，再动手实现
    - 查看 `docs/architecture.md` 了解系统架构
    - 查看 `.github/copilot-instructions.md` 了解编码规范
+  - 对复杂需求先查看 `docs/sdd/README.md` 与相关 `docs/sdd/10-detailed-design/` 文档
    - 浏览 `src/` 目录理解代码结构
 
-2. **创建分支**：
+2. **确认是否需要先补设计文档（SDD）**：
+  - 若需求跨模块、流程复杂、边界不清，先补齐/更新 `docs/sdd/10-detailed-design/` 文档，再进入实现
+  - 设计文档创建建议使用 `.github/prompts/create-doc-prompt.md`
+  - 基于设计文档创建 Issue 建议使用 `.github/prompts/create-issue-prompt.md`
+
+3. **创建分支**：
    ```bash
    git checkout -b feat/{{ issue.identifier | downcase }}-{{ issue.title | slugify | truncate: 30, '' }}
    ```
 
-3. **确认理解**：如果 Issue 描述不清晰，在开始编码前先分析已有的相关代码以推断意图
-4. **默认自主推进**：除非遇到权限、网络、凭据、环境缺失或需求冲突等阻塞，否则按完整工作流连续执行，不为常规动作逐步请求确认
+4. **确认理解**：如果 Issue 描述不清晰，在开始编码前先分析已有的相关代码以推断意图
+5. **默认自主推进**：除非遇到权限、网络、凭据、环境缺失或需求冲突等阻塞，否则按完整工作流连续执行，不为常规动作逐步请求确认
 
 ### 实现要求
 
