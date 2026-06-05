@@ -13,6 +13,7 @@ param(
     [string]$Template = ".github/issues-backlog/TEMPLATE.md",
     [switch]$DryRun,
     [switch]$AllowDirty,
+    [switch]$AllowNonStartBranch,
     [string]$PythonExe = "python"
 )
 
@@ -45,6 +46,9 @@ if ($DryRun) {
 }
 if ($AllowDirty) {
     $cmd += "--allow-dirty"
+}
+if ($AllowNonStartBranch) {
+    $cmd += "--allow-non-start-branch"
 }
 
 & $PythonExe $cmd
