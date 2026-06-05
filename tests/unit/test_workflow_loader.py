@@ -92,8 +92,8 @@ prompt
         encoding="utf-8",
     )
 
-    with pytest.raises(WorkflowParseError, match="环境变量未设置"):
-        load_runtime_settings(workflow)
+    settings = load_runtime_settings(workflow)
+    assert settings.github_token == ""
 
 
 def test_load_runtime_settings_renders_hook_templates(
@@ -190,3 +190,27 @@ prompt
     assert settings.quality_commands == [
         "python .github/automation/scripts/quality-gate.py --mode full"
     ]
+
+
+def test_load_runtime_settings_allows_missing_token_for_gh_cli(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """automation 固定走 gh CLI 时，应允许不配置 tracker.api_key。"""
+    workflow = tmp_path / "WORKFLOW.md"
+    workflow.write_text(
+        """---
+tracker:
+  kind: github
+  repo: $GITHUB_REPOSITORY
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("GITHUB_REPOSITORY", "octo/demo")
+
+    settings = load_runtime_settings(workflow)
+
+    assert settings.github_token == ""

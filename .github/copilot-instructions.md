@@ -195,6 +195,8 @@ Closes #42
     - 可能破坏用户现有未提交改动的高风险操作
 
 3. **PR 描述必须完整**：创建 PR 时必须按 `.github/pull_request_template.md` 填写全部章节，不允许只提交标题或单个章节。
+    - 使用 `gh` 创建/编辑 PR 时，必须使用 `--body-file`，禁止直接用 `--body` 传递多行 Markdown（在 Windows PowerShell 环境下可能被截断为首行）。
+    - 手动模式优先使用 `.github/manual/scripts/create-pr.py|.ps1|.sh` 统一入口创建 PR。
 
 4. **测试信息可审计**：PR 描述中的“测试计划”必须明确：
     - 已执行项（命令 + 结果）

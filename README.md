@@ -580,13 +580,7 @@ export AUTOMATION_ADAPTER_BACKEND_COMMAND='your-agent-cli --workspace "{workspac
 # 默认即严格门禁：python .github/automation/scripts/quality-gate.py --mode full
 export AUTOMATION_QUALITY_COMMANDS='python .github/automation/scripts/quality-gate.py --mode full'
 
-# 可选：企业网络证书配置（推荐使用 CA 证书）
-export AUTOMATION_CA_BUNDLE='/path/to/corporate-ca.pem'
-
-# 可选：临时关闭 TLS 校验（仅排障使用，不推荐）
-export AUTOMATION_TLS_NO_VERIFY='false'
-
-# 默认行为：自动化客户端优先使用系统证书库（与 GitHub CLI 一致思路）
+# 自动化模式默认通过 gh CLI 访问 GitHub（建议先完成 gh auth login）
 
 # 2) 单次执行（推荐给 Cron/计划任务）
 # Windows PowerShell

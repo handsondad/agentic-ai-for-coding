@@ -97,7 +97,7 @@
 ### 公共变量（automation/manual 都会用到）
 
 - `GITHUB_TOKEN`
-  - 必填。GitHub API 访问令牌。
+  - 选填。用于 `gh` 非交互认证；若本机已 `gh auth login` 可不设置。
 - `GITHUB_REPOSITORY`
   - 必填。格式 `owner/repo`。
 - `GITHUB_BASE_BRANCH`
@@ -135,10 +135,6 @@
   - 可选。Celery result backend 地址。
 - `AUTOMATION_CELERY_QUEUE`
   - 可选。Celery 队列名。
-- `AUTOMATION_CA_BUNDLE`
-  - 可选。企业 CA 证书路径。
-- `AUTOMATION_TLS_NO_VERIFY`
-  - 可选。禁用 TLS 校验（不推荐，排障专用）。
 
 ## 运行产物
 
@@ -157,8 +153,9 @@
 
 - 首次部署建议先跑一次单次调度（run-once）验证配置。
 - Worker 与 Dispatcher 建议分开终端/服务进程运行。
+- automation 启动时会预检 `gh` 可执行和认证状态（无 token 时检查 `gh auth status`）。
 - 若出现重复调度，优先检查 `dispatch-state.json` 与基线分支更新记录。
-- 若企业网络下 TLS 报错，优先配置 `AUTOMATION_CA_BUNDLE`，不要长期使用 `AUTOMATION_TLS_NO_VERIFY=true`。
+- 若企业网络下遇到 GitHub 访问问题，优先确认 `gh auth status` 和代理配置。
 
 ## 快速配置示例（PowerShell）
 

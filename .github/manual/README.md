@@ -23,6 +23,11 @@
   - 手动模式下的本地质量门禁入口。
   - 默认执行严格检查（`full`）：Ruff 格式检查、Ruff Lint、mypy、unit test、integration test。
 
+- `scripts/create-pr.py|.ps1|.sh`
+  - 手动模式下创建 PR 的统一入口。
+  - 强制使用 `gh pr create --body-file`，避免 PowerShell 场景下多行 `--body` 被截断。
+  - 创建前自动执行 PR 模板完整性校验（`check-pr-template.py`）。
+
 ## 推荐流程（手动模式）
 
 1. 先执行 `start-backlog-issue`，基于最新 `main` 创建独立 backlog 分支。
@@ -34,6 +39,7 @@
    - Windows: `pwsh .github/manual/scripts/run-quality-gate.ps1 -Mode full`
    - Linux/macOS: `sh .github/manual/scripts/run-quality-gate.sh --mode full`
 7. 通过后再执行 commit / push / PR。
+8. 创建 PR 时使用 `create-pr` 脚本，不直接使用 `gh pr create --body`。
 
 ## 常用命令
 
@@ -59,6 +65,15 @@
 - Linux/macOS:
   - `sh .github/manual/scripts/prepare-single-issue.sh --issue-number 12`
   - `sh .github/manual/scripts/run-quality-gate.sh --mode full`
+
+### 4) 创建 PR（强制 body-file）
+
+- Windows:
+  - `pwsh .github/manual/scripts/create-pr.ps1 -Title "fix(manual): use gh CLI for prepare-single-issue" -IssueNumber 32`
+- Linux/macOS:
+  - `sh .github/manual/scripts/create-pr.sh --title "fix(manual): use gh CLI for prepare-single-issue" --issue-number 32`
+
+说明：若不传 `--body-file`，脚本会从 `.github/pull_request_template.md` 生成临时 body 文件并校验后创建 PR。
 
 ## 环境变量说明
 

@@ -139,6 +139,8 @@ codex:
    - 变更背景和原因
    - 变更内容摘要
    - 测试计划
+  - 使用 `gh` 创建/编辑 PR 时必须使用 `--body-file`，不要使用 `--body` 直接传多行内容。
+  - 手动模式建议使用 `.github/manual/scripts/create-pr.py|.ps1|.sh` 创建 PR。
 
 3. **自检清单**：
    - [ ] 所有测试通过（`make test`）
