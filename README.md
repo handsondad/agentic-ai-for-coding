@@ -159,6 +159,8 @@ ONCE=true ./.github/automation/scripts/run-celery-dispatch.sh
 **关键实践**：
 - Issue 描述必须足够详细，让 AI 无需额外沟通即可理解需求
 - 可复用 Prompt 统一放在 `.github/prompts/`，例如 `create-issue-prompt.md` 用于按 Issue Template 生成规范化提单内容
+- 复杂需求优先走 SDD 设计文档协同流程：先在 `docs/sdd/10-detailed-design/` 形成设计，再基于设计创建 Issue
+- SDD 协同建议使用 `create-doc-prompt.md`（创建设计文档）+ `create-issue-prompt.md`（由设计文档反向生成 Issue）
 - 使用标签体系管理任务状态：`ai-ready`、`in-progress`、`human-review`
 - 通过 GitHub Projects 管理任务优先级和进度
 

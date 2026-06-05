@@ -349,10 +349,11 @@ Celery 模式下，依赖关系建议采用 `Depends on: #123` 声明，并按 D
 
 1. 确认 `WORKFLOW.md` 与 `.github/copilot-instructions.md` 反映当前真实流程。
 2. 用 `.github/prompts/create-issue-prompt.md` 和 Issue 模板统一提单方式。
-3. 为复杂模块补齐设计说明或契约文档，再进入拆单。
-4. 仅为满足门槛的 Issue 打上 `ai-ready`。
-5. 强制使用 PR 模板并审查测试计划的真实性。
-6. 定期回顾失败案例，修正模板、规范和脚手架。
+3. 对复杂需求先用 `.github/prompts/create-doc-prompt.md` 产出/完善 `docs/sdd/10-detailed-design/` 设计文档。
+4. 基于已确认的 SDD 文档，再用 `.github/prompts/create-issue-prompt.md` 反向生成 Issue。
+5. 仅为满足门槛的 Issue 打上 `ai-ready`。
+6. 强制使用 PR 模板并审查测试计划的真实性。
+7. 定期回顾失败案例，修正模板、规范和脚手架。
 
 ## 14. 参考文件
 
@@ -363,4 +364,6 @@ Celery 模式下，依赖关系建议采用 `Depends on: #123` 声明，并按 D
 - `.github/ISSUE_TEMPLATE/bug.yml`
 - `.github/ISSUE_TEMPLATE/task.yml`
 - `.github/pull_request_template.md`
+- `docs/sdd/README.md`
+- `.github/prompts/create-doc-prompt.md`
 - `.github/prompts/create-issue-prompt.md`
