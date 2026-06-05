@@ -4,7 +4,6 @@
 
 tracker:
   kind: github
-  backend: api
   api_key: $GITHUB_TOKEN
   repo: $GITHUB_REPOSITORY
   # 触发 AI 处理的 Issue 标签状态

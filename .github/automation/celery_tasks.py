@@ -63,11 +63,7 @@ def run_issue_task(issue_number: int, workflow_path: str = "WORKFLOW.md") -> dic
 async def _run_issue_async(issue_number: int, workflow_path: str) -> dict[str, Any]:
     resolved_workflow = Path(workflow_path).resolve()
     settings = load_runtime_settings(resolved_workflow)
-    github = GitHubClient(
-        token=settings.github_token,
-        repo=settings.github_repo,
-        backend=settings.github_backend,
-    )
+    github = GitHubClient(token=settings.github_token, repo=settings.github_repo)
 
     issue = await github.get_issue(issue_number)
     if issue is None:

@@ -32,15 +32,7 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
     hooks_map = _get_map(front_matter, "hooks", required=False)
     celery_map = _get_map(front_matter, "celery", required=False)
 
-    github_backend = _resolve_github_backend(
-        _opt_str(os.getenv("AUTOMATION_GITHUB_BACKEND"))
-        or _opt_str(tracker.get("backend"))
-        or "api"
-    )
-    if github_backend == "gh":
-        token = _resolve_optional_env_like(tracker.get("api_key"))
-    else:
-        token = _resolve_env_like(_required_str(tracker, "api_key", "tracker.api_key"))
+    token = _resolve_optional_env_like(tracker.get("api_key"))
     repo_raw = _resolve_env_like(_required_str(tracker, "repo", "tracker.repo"))
     repo = _parse_repo(repo_raw)
 
@@ -94,7 +86,6 @@ def load_runtime_settings(workflow_path: Path) -> RuntimeSettings:
 
     return RuntimeSettings(
         github_token=token,
-        github_backend=github_backend,
         github_repo=repo,
         active_labels=active_labels,
         terminal_labels=terminal_labels,
@@ -180,13 +171,6 @@ def _resolve_optional_env_like(value: Any) -> str:
         return raw
     env_name = raw[1:]
     return (os.getenv(env_name) or "").strip()
-
-
-def _resolve_github_backend(value: str) -> str:
-    backend = value.strip().lower()
-    if backend not in {"api", "gh"}:
-        raise WorkflowParseError("tracker.backend 必须是 api 或 gh")
-    return backend
 
 
 def _parse_repo(value: str) -> GitHubRepo:

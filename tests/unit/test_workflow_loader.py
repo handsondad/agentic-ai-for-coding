@@ -92,8 +92,8 @@ prompt
         encoding="utf-8",
     )
 
-    with pytest.raises(WorkflowParseError, match="环境变量未设置"):
-        load_runtime_settings(workflow)
+    settings = load_runtime_settings(workflow)
+    assert settings.github_token == ""
 
 
 def test_load_runtime_settings_renders_hook_templates(
@@ -192,17 +192,16 @@ prompt
     ]
 
 
-def test_load_runtime_settings_supports_gh_backend_without_token(
+def test_load_runtime_settings_allows_missing_token_for_gh_cli(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """当 backend=gh 时，应允许不配置 tracker.api_key。"""
+    """automation 固定走 gh CLI 时，应允许不配置 tracker.api_key。"""
     workflow = tmp_path / "WORKFLOW.md"
     workflow.write_text(
         """---
 tracker:
   kind: github
-  backend: gh
   repo: $GITHUB_REPOSITORY
 ---
 prompt
@@ -214,27 +213,4 @@ prompt
 
     settings = load_runtime_settings(workflow)
 
-    assert settings.github_backend == "gh"
     assert settings.github_token == ""
-
-
-def test_load_runtime_settings_rejects_unknown_github_backend(
-    tmp_path: Path,
-) -> None:
-    """未知 backend 值应在加载阶段报错。"""
-    workflow = tmp_path / "WORKFLOW.md"
-    workflow.write_text(
-        """---
-tracker:
-  kind: github
-  backend: custom
-  api_key: token
-  repo: owner/repo
----
-prompt
-""",
-        encoding="utf-8",
-    )
-
-    with pytest.raises(WorkflowParseError, match="tracker.backend"):
-        load_runtime_settings(workflow)
