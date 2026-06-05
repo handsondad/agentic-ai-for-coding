@@ -153,6 +153,7 @@
 
 - 首次部署建议先跑一次单次调度（run-once）验证配置。
 - Worker 与 Dispatcher 建议分开终端/服务进程运行。
+- automation 启动时会预检 `gh` 可执行和认证状态（无 token 时检查 `gh auth status`）。
 - 若出现重复调度，优先检查 `dispatch-state.json` 与基线分支更新记录。
 - 若企业网络下遇到 GitHub 访问问题，优先确认 `gh auth status` 和代理配置。
 

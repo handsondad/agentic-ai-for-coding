@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 from datetime import datetime
@@ -22,6 +23,32 @@ class GitHubClient:
     def __init__(self, token: str, repo: GitHubRepo) -> None:
         self._token = token.strip()
         self._repo = repo
+        self._verify_gh_runtime()
+
+    def _verify_gh_runtime(self) -> None:
+        gh_path = shutil.which("gh")
+        if gh_path is None:
+            raise RuntimeError(
+                "gh CLI not found in PATH; install GitHub CLI before running automation."
+            )
+
+        if self._token:
+            return
+
+        status = subprocess.run(  # noqa: S603
+            [gh_path, "auth", "status"],
+            text=True,
+            capture_output=True,
+            check=False,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if status.returncode != 0:
+            output = (status.stdout or "") + (status.stderr or "")
+            raise RuntimeError(
+                "gh auth status failed; run 'gh auth login' or set GITHUB_TOKEN/GH_TOKEN. "
+                f"detail: {output.strip()}"
+            )
 
     async def list_candidate_issues(
         self,
@@ -236,7 +263,7 @@ class GitHubClient:
         env = os.environ.copy()
         if self._token:
             env.setdefault("GH_TOKEN", self._token)
-        return await asyncio.to_thread(
+        result = await asyncio.to_thread(
             subprocess.run,  # noqa: S603
             ["gh", *args],
             text=True,
@@ -246,6 +273,14 @@ class GitHubClient:
             errors="replace",
             env=env,
         )
+        if result.returncode != 0:
+            output = ((result.stdout or "") + (result.stderr or "")).casefold()
+            if "authentication" in output or "not logged into" in output:
+                raise RuntimeError(
+                    "gh authentication failed during automation command; "
+                    "run 'gh auth login' or set GITHUB_TOKEN/GH_TOKEN."
+                )
+        return result
 
 
 def _normalize_issue(payload: Any) -> GitHubIssue | None:
