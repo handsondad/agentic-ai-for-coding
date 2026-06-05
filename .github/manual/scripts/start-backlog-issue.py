@@ -14,6 +14,7 @@ import yaml
 
 _FRONT_MATTER_PATTERN = re.compile(r"^\ufeff?---\s*\n(.*?)\n---\s*\n?(.*)$", re.DOTALL)
 _BACKFILL_PREFIX_PATTERN = re.compile(r"^backfill-\d{8}(?:-\d{8})?-")
+_REQUIRED_START_BRANCH = "start-backlog-issue"
 
 
 class StartBacklogError(RuntimeError):
@@ -43,6 +44,7 @@ class StartOptions:
     template_path: Path
     dry_run: bool
     allow_dirty: bool
+    allow_non_start_branch: bool
 
 
 @dataclass(slots=True)
@@ -92,6 +94,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Allow branch creation even when working tree has uncommitted changes",
     )
+    parser.add_argument(
+        "--allow-non-start-branch",
+        action="store_true",
+        help="Bypass required start branch check (for emergency use only)",
+    )
     return parser.parse_args()
 
 
@@ -117,6 +124,33 @@ def ensure_clean_worktree(repo_root: Path) -> None:
             "or re-run with --allow-dirty.\n"
             f"Changed files:\n{details}"
         )
+
+
+def get_current_branch(repo_root: Path) -> str:
+    """Return current git branch name."""
+    result = run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo_root)
+    if result.exit_code != 0:
+        raise StartBacklogError(f"Failed to resolve current branch: {result.output}")
+    return result.output.strip()
+
+
+def ensure_start_branch_policy(repo_root: Path, options: StartOptions) -> None:
+    """Enforce start-backlog-issue as the only allowed trigger branch."""
+    if options.allow_non_start_branch:
+        return
+
+    current_branch = get_current_branch(repo_root)
+    if current_branch == _REQUIRED_START_BRANCH:
+        return
+
+    raise StartBacklogError(
+        "Blocked: start-backlog-issue must run from branch "
+        f"'{_REQUIRED_START_BRANCH}', current branch is '{current_branch}'.\n"
+        "Please run:\n"
+        f"1) git switch {_REQUIRED_START_BRANCH}\n"
+        "2) rerun start-backlog-issue\n"
+        "Emergency bypass (not recommended): --allow-non-start-branch"
+    )
 
 
 def slugify(text: str, max_length: int = 48) -> str:
@@ -220,6 +254,8 @@ def sync_base_and_create_branch(repo_root: Path, options: StartOptions) -> str:
 
 def start_backlog_issue(repo_root: Path, options: StartOptions) -> StartResult:
     """Execute backlog issue startup workflow."""
+    ensure_start_branch_policy(repo_root, options)
+
     if not options.dry_run and not options.allow_dirty:
         ensure_clean_worktree(repo_root)
 
@@ -270,6 +306,7 @@ def main() -> None:
         template_path=Path(args.template),
         dry_run=args.dry_run,
         allow_dirty=args.allow_dirty,
+        allow_non_start_branch=args.allow_non_start_branch,
     )
 
     try:

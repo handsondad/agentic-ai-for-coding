@@ -85,6 +85,11 @@
 
 ## 建议约束
 
+- `start-backlog-issue` 只能在 `start-backlog-issue` 分支上执行（硬约束）。
+  - 正常流程：先 `git switch start-backlog-issue`，再执行脚本。
+  - 仅排障临时绕过：
+    - PowerShell: `pwsh .github/manual/scripts/start-backlog-issue.ps1 -Type task -Title "..." -AllowNonStartBranch`
+    - Python: `python .github/manual/scripts/start-backlog-issue.py --type task --title "..." --allow-non-start-branch`
 - 发布 backlog 前，建议先提交 backlog 分支，确保提单改动可追溯。
 - 若脚本提示工作区不干净，优先提交或暂存后再创建 backlog 分支。
 - 若你明确需要在当前未提交改动基础上继续，可显式传入：
