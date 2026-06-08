@@ -119,7 +119,7 @@ def cmd_show_env_template(args: argparse.Namespace) -> None:
     print("# Cline (VS Code Extension)")
     print("AGENT_CLINE_COMMAND=cline --workspace {workspace} --prompt-file {prompt}")
     print("AGENT_CLINE_MODEL=gpt-4")
-    print("OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>")
     print()
 
     print("# OpenCode")
