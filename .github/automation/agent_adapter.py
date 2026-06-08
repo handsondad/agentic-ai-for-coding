@@ -142,9 +142,14 @@ class GenericAgentAdapter(AgentAdapter):
         start_time = time.time()
 
         try:
-            process = await asyncio.create_subprocess_shell(
-                command,
-                cwd=context.workspace,
+            if os.name == "nt":
+                cmd = ["cmd", "/c", command]
+            else:
+                cmd = ["/bin/sh", "-lc", command]
+
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                cwd=str(context.workspace),
                 env=env,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
