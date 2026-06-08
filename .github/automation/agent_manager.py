@@ -10,7 +10,6 @@ from typing import Any
 
 try:
     from .agent_adapter import (
-        AgentAdapter,
         AgentConfig,
         AgentExecutionContext,
         AgentExecutionResult,
