@@ -10,6 +10,8 @@ import subprocess
 from pathlib import Path
 
 try:
+    from .agent_adapter import AgentExecutionContext
+    from .agent_manager import create_default_agent_manager
     from .github_client import GitHubClient
     from .models import (
         GitHubIssue,
@@ -19,6 +21,8 @@ try:
         slugify,
     )
 except ImportError:
+    from agent_adapter import AgentExecutionContext
+    from agent_manager import create_default_agent_manager
     from github_client import GitHubClient
     from models import (
         GitHubIssue,
@@ -41,6 +45,8 @@ class IssuePipeline:
     def __init__(self, settings: RuntimeSettings, github: GitHubClient) -> None:
         self._settings = settings
         self._github = github
+        # 初始化多 Agent 管理器
+        self._agent_manager = create_default_agent_manager(settings.repo_root)
 
     async def run(self, issue: GitHubIssue) -> PipelineResult:
         """执行完整流水线并返回结果。"""
@@ -158,6 +164,63 @@ class IssuePipeline:
         (prompt_dir / "issue-prompt.md").write_text(prompt, encoding="utf-8")
 
     async def _run_agent(self, issue: GitHubIssue, worktree_path: Path) -> None:
+        """使用多 Agent 管理器执行 AI 任务。"""
+        prompt_path = worktree_path / ".automation" / "issue-prompt.md"
+
+        # 创建执行上下文
+        context = AgentExecutionContext(
+            workspace=worktree_path,
+            prompt_file=prompt_path,
+            issue_number=str(issue.number),
+            issue_title=issue.title,
+            issue_url=issue.html_url,
+            workflow_file=self._settings.workflow_path,
+            base_branch=self._settings.base_branch,
+        )
+
+        # 从环境变量获取 Agent 配置
+        primary_agent = os.getenv("AUTOMATION_PRIMARY_AGENT", "")
+        fallback_agents_str = os.getenv("AUTOMATION_FALLBACK_AGENTS", "")
+        fallback_agents = [
+            agent.strip() for agent in fallback_agents_str.split(",") if agent.strip()
+        ]
+
+        # 如果没有配置特定的 Agent，使用推荐的降级链
+        if not primary_agent:
+            recommended_chain = self._agent_manager.get_recommended_fallback_chain()
+            if recommended_chain:
+                primary_agent = recommended_chain[0]
+                fallback_agents = recommended_chain[1:]
+            else:
+                # 回退到旧的方式
+                if self._settings.agent_command:
+                    await self._run_legacy_agent(issue, worktree_path)
+                    return
+                else:
+                    raise PipelineError("未配置任何 Agent，无法自动执行 AI 任务")
+
+        logger.info(f"使用主 Agent: {primary_agent}")
+        if fallback_agents:
+            logger.info(f"备选 Agent: {', '.join(fallback_agents)}")
+
+        # 执行 Agent 任务（支持降级）
+        if fallback_agents:
+            result = await self._agent_manager.execute_with_fallback(
+                primary_agent, fallback_agents, context
+            )
+        else:
+            result = await self._agent_manager.execute_with_agent(primary_agent, context)
+
+        # 检查执行结果
+        if not result.success:
+            error_msg = f"所有 Agent 都执行失败。最后错误: {result.stderr}"
+            logger.error(error_msg)
+            raise PipelineError(error_msg)
+
+        logger.info(f"Agent 执行成功 (用时 {result.execution_time_seconds:.1f}s)")
+
+    async def _run_legacy_agent(self, issue: GitHubIssue, worktree_path: Path) -> None:
+        """使用旧的 Agent 执行方式（向后兼容）。"""
         prompt_path = worktree_path / ".automation" / "issue-prompt.md"
         if not self._settings.agent_command:
             raise PipelineError("未配置 AUTOMATION_AGENT_COMMAND，无法自动执行 AI 任务")
