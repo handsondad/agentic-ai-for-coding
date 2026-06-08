@@ -133,7 +133,7 @@ def cmd_show_env_template(args: argparse.Namespace) -> None:
     print("AGENT_DEEPSEEK_COMMAND=deepseek-tui --workspace {workspace} --prompt {prompt}")
     print("AGENT_DEEPSEEK_MODEL=deepseek-coder")
     print("AGENT_DEEPSEEK_BASE_URL=https://api.deepseek.com/v1")
-    print("DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("DEEPSEEK_API_KEY=<YOUR_DEEPSEEK_API_KEY>")
     print()
 
     print("# 通用 OpenAI-compatible 配置")
