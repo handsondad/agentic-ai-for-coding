@@ -209,8 +209,8 @@ async def demonstrate_real_world_scenario() -> None:
     print("1. 环境变量配置:")
     print("   export AUTOMATION_PRIMARY_AGENT=copilot")
     print("   export AUTOMATION_FALLBACK_AGENTS=claude-code,cline,opencode")
-    print("   export GITHUB_TOKEN=ghp_xxxx")
-    print("   export ANTHROPIC_API_KEY=sk-ant-xxxx")
+    print("   export GITHUB_TOKEN=<YOUR_GITHUB_TOKEN>")
+    print("   export ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY>")
     print()
 
     print("2. Agent 特定配置:")
