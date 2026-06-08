@@ -11,7 +11,7 @@ from pathlib import Path
 
 try:
     from .agent_adapter import AgentExecutionContext
-    from .agent_manager import AgentManager, create_default_agent_manager
+    from .agent_manager import create_default_agent_manager
     from .github_client import GitHubClient
     from .models import (
         GitHubIssue,
