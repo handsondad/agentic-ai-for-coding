@@ -386,10 +386,54 @@ def _exec_process(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str
 
 
 def _slugify(text: str, max_length: int = 48) -> str:
-    normalized = "".join(ch.lower() if ch.isalnum() else "-" for ch in text)
+    """生成可用于分支名的 slug，确保使用英文字符。
+
+    将中文标题转换为英文描述或通用标识符，避免 GitHub 隐藏字符警告。
+    """
+    # 常见中文到英文的映射
+    chinese_to_english = {
+        "多": "multi",
+        "接入": "integration",
+        "支持": "support",
+        "优化": "optimization",
+        "修复": "fix",
+        "更新": "update",
+        "添加": "add",
+        "实现": "implement",
+        "配置": "config",
+        "管理": "management",
+        "工具": "tool",
+        "测试": "test",
+        "文档": "docs",
+        "API": "api",
+        "数据": "data",
+        "用户": "user",
+        "系统": "system",
+        "服务": "service",
+        "模型": "model",
+        "代码": "code",
+        "脚本": "script",
+        "自动化": "automation",
+        "流程": "workflow",
+        "集成": "integration",
+    }
+
+    # 先尝试替换常见中文词汇
+    result = text
+    for chinese, english in chinese_to_english.items():
+        result = result.replace(chinese, english)
+
+    # 将非字母数字字符转换为连字符
+    normalized = "".join(ch.lower() if ch.isalnum() else "-" for ch in result)
+
+    # 清理多余的连字符
     while "--" in normalized:
         normalized = normalized.replace("--", "-")
+
+    # 移除首尾连字符
     normalized = normalized.strip("-") or "issue"
+
+    # 截断到指定长度
     return normalized[:max_length].strip("-") or "issue"
 
 

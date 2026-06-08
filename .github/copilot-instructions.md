@@ -177,6 +177,59 @@ feat(agent): 添加多轮对话历史管理
 Closes #42
 ```
 
+## Git 分支命名规范
+
+**强制要求**：所有分支名必须使用英文，禁止使用中文字符，避免 GitHub 隐藏字符警告。
+
+**分支命名格式**：
+```
+<type>/<issue-number>-<short-description>
+```
+
+**type 类型**：
+- `feat`: 新功能分支
+- `fix`: Bug 修复分支
+- `chore`: 工程任务分支
+- `docs`: 文档更新分支
+- `refactor`: 重构分支
+
+**命名规则**：
+- 使用小写字母和连字符（kebab-case）
+- 描述部分使用英文，简洁明了
+- 总长度不超过 50 字符
+- 必须包含 issue 编号（如果有对应 issue）
+
+**正确示例**：
+```bash
+feat/issue-23-multi-agent-integration
+fix/issue-45-auth-token-validation
+chore/issue-67-update-dependencies
+docs/issue-12-api-documentation
+refactor/issue-89-simplify-config-loading
+```
+
+**错误示例**：
+```bash
+# ❌ 包含中文字符
+feat/issue-23-多agent接入
+
+# ❌ 使用大写字母
+feat/Issue-23-Multi-Agent-Integration
+
+# ❌ 使用下划线
+feat/issue_23_multi_agent_integration
+
+# ❌ 描述过长
+feat/issue-23-implement-comprehensive-multi-coding-agent-integration-system
+
+# ❌ 缺少 issue 编号
+feat/multi-agent-integration
+```
+
+**自动化脚本约束**：
+- 所有自动化脚本（如 `prepare-single-issue.py`）创建分支时必须遵循此规范
+- 分支名生成逻辑应自动将中文转换为英文或使用通用描述
+
 ## Agent 执行规范（强制）
 
 以下规范用于约束 Copilot Coding Agent 的默认行为：

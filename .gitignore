@@ -87,6 +87,10 @@ automation_workspaces/
 .worktrees-manual/
 .automation/
 
+# Claude Code 和手动工作目录
+.claude/
+.manual/
+
 # 系统文件
 .DS_Store
 Thumbs.db

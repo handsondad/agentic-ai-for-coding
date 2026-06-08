@@ -77,10 +77,18 @@ codex:
   - 设计文档创建建议使用 `.github/prompts/create-doc-prompt.md`
   - 基于设计文档创建 Issue 建议使用 `.github/prompts/create-issue-prompt.md`
 
-3. **创建分支**：
+3. **创建分支**（必须使用英文）：
    ```bash
-   git checkout -b feat/{{ issue.identifier | downcase }}-{{ issue.title | slugify | truncate: 30, '' }}
+   # 分支名格式：<type>/issue-<number>-<english-description>
+   # 示例：feat/issue-23-multi-agent-integration
+   git checkout -b feat/issue-{{ issue.identifier }}-<english-description>
    ```
+   
+   **重要约束**：
+   - 分支名必须使用英文，避免中文字符导致 GitHub 隐藏字符警告
+   - 使用 kebab-case（小写+连字符）命名
+   - 描述部分保持简洁，不超过 30 字符
+   - 参考 `.github/copilot-instructions.md` 中的分支命名规范
 
 4. **确认理解**：如果 Issue 描述不清晰，在开始编码前先分析已有的相关代码以推断意图
 5. **默认自主推进**：除非遇到权限、网络、凭据、环境缺失或需求冲突等阻塞，否则按完整工作流连续执行，不为常规动作逐步请求确认
