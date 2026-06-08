@@ -113,7 +113,7 @@ def cmd_show_env_template(args: argparse.Namespace) -> None:
     print("# Claude Code")
     print("AGENT_CLAUDE_CODE_COMMAND=claude-code --workspace {workspace} --prompt-file {prompt}")
     print("AGENT_CLAUDE_CODE_MODEL=claude-3-5-sonnet-20241022")
-    print("ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY>")
     print()
 
     print("# Cline (VS Code Extension)")
