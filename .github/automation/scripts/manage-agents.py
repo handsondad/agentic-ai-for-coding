@@ -126,7 +126,7 @@ def cmd_show_env_template(args: argparse.Namespace) -> None:
     print("AGENT_OPENCODE_COMMAND=opencode --workspace {workspace} --prompt {prompt}")
     print("AGENT_OPENCODE_MODEL=gpt-4")
     print("OPENAI_BASE_URL=https://api.openai.com/v1")
-    print("OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>")
     print()
 
     print("# DeepSeek")
