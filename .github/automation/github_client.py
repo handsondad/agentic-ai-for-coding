@@ -264,7 +264,7 @@ class GitHubClient:
         if self._token:
             env.setdefault("GH_TOKEN", self._token)
         result = await asyncio.to_thread(
-            subprocess.run,  # noqa: S603
+            subprocess.run,
             ["gh", *args],
             text=True,
             capture_output=True,
